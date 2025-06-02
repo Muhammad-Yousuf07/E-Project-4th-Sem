@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "985221152437",
+    "firebase_url": "https://watch-hub-e6f06-default-rtdb.firebaseio.com",
+    "project_id": "watch-hub-e6f06",
+    "storage_bucket": "watch-hub-e6f06.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:985221152437:android:2570cebf198201450688fc",
+        "android_client_info": {
+          "package_name": "com.example.authentication"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCLeCbCgAO3kC_1kXw7nbYQTvMZO8D9fQA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
