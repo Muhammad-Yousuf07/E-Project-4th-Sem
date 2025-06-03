@@ -32,6 +32,12 @@ class SideDrawer extends StatelessWidget {
               Navigator.pushReplacementNamed(context, "/CustomerSupportPage")
             }),
 
+            SizedBox(height: 10,),
+
+            drawerBody(icon: Icons.support_agent_outlined, text: "Feedback", onTap: ()=> {
+              Navigator.pushReplacementNamed(context, "/FeedbackFormPage")
+            }),
+
             const Divider(),
             ListTile(
               title: Text("App Version - 1.0.0", style: TextStyle(color: Colors.white)),
