@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-
 String? validateName(String? value) {
   if (value == null || value.isEmpty) {
     return "Empty value found";
@@ -17,6 +15,7 @@ String? validateName(String? value) {
 
   return null;
 }
+
 
 String? validateFullName(String? value) {
   if (value == null || value.trim().isEmpty) {
@@ -71,7 +70,6 @@ String? validatePassword(String? value) {
 }
 
 
-
 String? validateMessage(String? value) {
   if (value == null || value.isEmpty) {
     return 'Message can’t be empty';
@@ -95,7 +93,8 @@ String? validateAge(String? value,) {
   return null;
 }
 
-String? validateNumber(String? value) {
+
+String? validatePnoneNumber(String? value) {
   if (value!.isEmpty) {
     return "number is required";
   }
@@ -108,6 +107,23 @@ String? validateNumber(String? value) {
   }
   return null;
 }
+
+
+String? validateAddress(String? value) {
+  if (value == null || value.isEmpty) {
+    return "Address is required";
+  }
+
+  Pattern pattern = r"^[a-zA-Z0-9\s,.-]{5,100}$";
+  RegExp regExp = RegExp(pattern.toString());
+
+  if (!regExp.hasMatch(value)) {
+    return "Enter a valid address without special character";
+  }
+
+  return null;
+}
+
 
 
 

@@ -34,13 +34,13 @@ class _ChatPage extends State<ChatPage> {
       await FirebaseFirestore.instance.collection('supportMessages').add(messageData);
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Message sent successfully!')),
+        SnackBar(content: Text('✅ Message sent successfully!')),
       );
       clearData();
 
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error sending message. Please try again.')),
+        SnackBar(content: Text('❌ Error sending message. Please try again.')),
       );
     }
 

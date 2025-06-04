@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class AuthenticationHelper{
@@ -15,20 +16,41 @@ class AuthenticationHelper{
   }
 
 
-  Future signUp({required String name,required String email, required String password}) async {
-    try{
+  Future signUp({
+    required String name,
+    required String phone,
+    required String address,
+    required String email,
+    required String password,
+  }) async {
+    try {
       UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
-      await userCredential.user?.updateDisplayName(name);
-      await userCredential.user?.reload();
+
+      User? user = userCredential.user;
+
+      await user?.updateDisplayName(name);
+      await user?.reload();
+
+      await FirebaseFirestore.instance.collection('users').doc(user?.uid).set({
+        'uid': user?.uid,
+        'name': name,
+        'email': email,
+        'phone': phone,
+        'address': address,
+        'createdAt': Timestamp.now(),
+      });
 
       return null;
-    } on FirebaseAuthException catch(e){
+    } on FirebaseAuthException catch (e) {
       return e.message;
+    } catch (e) {
+      return 'Something went wrong';
     }
   }
+
 
 
   Future signOut() async{

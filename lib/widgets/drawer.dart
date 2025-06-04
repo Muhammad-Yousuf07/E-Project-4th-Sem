@@ -7,115 +7,107 @@ class SideDrawer extends StatelessWidget {
   Widget build(BuildContext context) {
     return Drawer(
       child: Container(
-        color: Colors.grey[600],
+        color: Colors.white,
         child: ListView(
           padding: EdgeInsets.zero,
           children: <Widget>[
-
             drawerHeader(),
+            const SizedBox(height: 16),
 
-            SizedBox(height: 10,),
+            drawerItem(
+              icon: Icons.home_outlined,
+              text: "Home",
+              onTap: () => Navigator.pushReplacementNamed(context, "/HomePage"),
+            ),
 
-            drawerBody(icon: Icons.home, text: "Home", onTap: ()=>{
-              Navigator.pushReplacementNamed(context, "/HomePage")
-            }),
+            drawerItem(
+              icon: Icons.login_outlined,
+              text: "Login",
+              onTap: () => Navigator.pushReplacementNamed(context, "/LoginPage"),
+            ),
 
-            SizedBox(height: 10,),
+            drawerItem(
+              icon: Icons.support_agent_outlined,
+              text: "Customer Support",
+              onTap: () => Navigator.pushReplacementNamed(context, "/CustomerSupportPage"),
+            ),
 
-            drawerBody(icon: Icons.login, text: "Login", onTap: ()=> {
-              Navigator.pushReplacementNamed(context, "/LoginPage")
-            }),
+            drawerItem(
+              icon: Icons.feedback_outlined,
+              text: "Feedback",
+              onTap: () => Navigator.pushReplacementNamed(context, "/FeedbackFormPage"),
+            ),
 
-            SizedBox(height: 10,),
-            
-            drawerBody(icon: Icons.support_agent_outlined, text: "Customer Support", onTap: ()=> {
-              Navigator.pushReplacementNamed(context, "/CustomerSupportPage")
-            }),
-
-            SizedBox(height: 10,),
-
-            drawerBody(icon: Icons.support_agent_outlined, text: "Feedback", onTap: ()=> {
-              Navigator.pushReplacementNamed(context, "/FeedbackFormPage")
-            }),
-
-            const Divider(),
+            const Divider(thickness: 1, height: 32),
             ListTile(
-              title: Text("App Version - 1.0.0", style: TextStyle(color: Colors.white)),
-              subtitle: Text("copyright © 2025", style: TextStyle(color: Colors.white)),
-            )
-
+              title: Text(
+                "App Version - 1.0.0",
+                style: TextStyle(color: Colors.black54),
+              ),
+              subtitle: Text(
+                "© watch.hub - 2025",
+                style: TextStyle(color: Colors.black38),
+              ),
+            ),
           ],
         ),
       ),
     );
   }
-
 
   Widget drawerHeader() {
-    return SizedBox(
-      height: 250,
-      child: DrawerHeader(
-        margin: EdgeInsets.zero,
-        padding: EdgeInsets.zero,
-        decoration: BoxDecoration(
-          image: DecorationImage(
-              image: AssetImage("assets/images/banner.gif"),
-              fit: BoxFit.fill
-          ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisSize: MainAxisSize.max,
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: <Widget>[
-            CircleAvatar(
-              radius: 60,
-              backgroundColor: Colors.black,
-              child: CircleAvatar(
-                radius: 55,
-                backgroundImage: AssetImage("assets/images/avatar.jpg"),
-              ),
-            ),
-
-            SizedBox(height: 20,),
-
-            Container(
-              padding: EdgeInsets.all(10),
-              color: Colors.black,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: <Widget>[
-                  Text("Side-Bar", style: TextStyle(color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 22),),
-                ],
-              ),
-            ),
-
-
-          ],
-        ),
+    return DrawerHeader(
+      margin: EdgeInsets.zero,
+      padding: EdgeInsets.zero,
+      decoration: const BoxDecoration(
+        color: Color(0xFF0e99c9),
       ),
-    );
-  }
-
-  Widget drawerBody({
-    required IconData icon,
-    required String text,
-    required GestureTapCallback onTap
-  }) {
-    return ListTile(
-      title: Row(
-        children: [
-          Icon(icon, color: Colors.white),
-          Padding(padding: EdgeInsets.only(left: 16),
-            child: Text(text, style: TextStyle(color: Colors.white),),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: <Widget>[
+          const CircleAvatar(
+            radius: 40,
+            child: CircleAvatar(
+              radius : 38,
+              backgroundImage: AssetImage("assets/images/user_avatar.png"),
+            ),
           ),
+          const SizedBox(height: 12),
+          Text(
+            "Welcome!",
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 0.5,
+            ),
+          ),
+          const SizedBox(height: 8),
         ],
       ),
-      onTap: onTap,
     );
   }
 
-
+  Widget drawerItem({
+    required IconData icon,
+    required String text,
+    required GestureTapCallback onTap,
+  }) {
+    return ListTile(
+      leading: Icon(icon, color: Color(0xFF0e99c9)),
+      title: Text(
+        text,
+        style: TextStyle(
+          color: Colors.black87,
+          fontSize: 16,
+        ),
+      ),
+      hoverColor: Colors.grey.shade200,
+      onTap: onTap,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+      ),
+    );
+  }
 }
