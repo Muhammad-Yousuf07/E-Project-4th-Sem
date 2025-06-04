@@ -1,12 +1,18 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+
+final user = FirebaseAuth.instance.currentUser;
+final userName = user?.displayName ?? 'No Name';
+
+
 class SideDrawer extends StatelessWidget {
   const SideDrawer({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Drawer(
+      width: 270,
       child: Container(
         color: Colors.white,
         child: ListView(
@@ -33,6 +39,13 @@ class SideDrawer extends StatelessWidget {
               text: "Feedback",
               onTap: () => Navigator.pushReplacementNamed(context, "/FeedbackFormPage"),
             ),
+
+            drawerItem(
+              icon: Icons.edit_note,
+              text: "Edit Profile",
+              onTap: () => Navigator.pushReplacementNamed(context, "/FeedbackFormPage"),
+            ),
+
 
             drawerItem(
               icon: Icons.logout,
@@ -62,34 +75,37 @@ class SideDrawer extends StatelessWidget {
   }
 
   Widget drawerHeader() {
-    return DrawerHeader(
-      margin: EdgeInsets.zero,
-      padding: EdgeInsets.zero,
-      decoration: const BoxDecoration(
-        color: Color(0xFF0e99c9),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: <Widget>[
-          const CircleAvatar(
-            radius: 40,
-            child: CircleAvatar(
-              radius : 38,
-              backgroundImage: AssetImage("assets/images/user_avatar.png"),
+    return Container(
+      height: 175,
+      child: DrawerHeader(
+        margin: EdgeInsets.zero,
+        padding: EdgeInsets.zero,
+        decoration: const BoxDecoration(
+          color: Color(0xFF0e99c9),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: <Widget>[
+            const CircleAvatar(
+              radius: 40,
+              child: CircleAvatar(
+                radius : 38,
+                backgroundImage: AssetImage("assets/images/user_avatar.png"),
+              ),
             ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            "Welcome!",
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 0.5,
+            const SizedBox(height: 12),
+            Text(
+              "\t\t\tWelcome!\n$userName ",
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 0.5,
+              ),
             ),
-          ),
-          const SizedBox(height: 8),
-        ],
+            const SizedBox(height: 8),
+          ],
+        ),
       ),
     );
   }
