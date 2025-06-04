@@ -1,10 +1,16 @@
 import 'package:authentication/widgets/auth_guard.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
 
 import '../services/authentication.dart';
 import '../services/validation.dart';
 import '../widgets/drawer.dart';
+
+
+final user = FirebaseAuth.instance.currentUser;
+final userEmail = user?.email ?? 'No Email';
 
 class FeedbackFormPage extends StatefulWidget {
   static const String routeName = '/FeedbackFormPage';
@@ -21,12 +27,16 @@ class _FeedbackFormPageState extends State<FeedbackFormPage> {
   bool _isSending = false;
 
   void _submitFeedback() async {
+
+    await FirebaseAuth.instance.currentUser?.reload();
+    final user = FirebaseAuth.instance.currentUser;
+
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isSending = true);
 
     final feedbackData = {
-      'email': _emailController.text.trim(),
+    'email': user?.email ?? 'No Email',
       'type': _feedbackType,
       'rating': _rating,
       'message': _messageController.text.trim(),
@@ -118,13 +128,27 @@ class _FeedbackFormPageState extends State<FeedbackFormPage> {
                     SizedBox(height: 24),
 
                     // Email Field
+
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(left: 4, bottom: 8),
+                      child: Text(
+                        "⚠️ Email can be changed in user profile settings",
+                        style: TextStyle(
+                          color: Colors.red.shade700,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
                     Material(
                       elevation: 20,
                       shadowColor: Colors.black38,
                       child: TextFormField(
-                        controller: _emailController,
-                        keyboardType: TextInputType.emailAddress,
-                        validator: validateEmail,
+                        initialValue: FirebaseAuth.instance.currentUser?.email ?? 'No Email',
+                        enabled: false, // Makes the field read-only
                         decoration: InputDecoration(
                           hintText: "Enter Email",
                           prefixIcon: Icon(Icons.email_outlined),
@@ -134,15 +158,13 @@ class _FeedbackFormPageState extends State<FeedbackFormPage> {
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.zero,
                             borderSide: BorderSide(
-                              color: Colors.transparent, // light white border
+                              color: Colors.transparent,
                               width: 1.0,
                             ),
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.zero,
-                            borderSide: BorderSide(
-                              color: Colors.transparent,
-                            ),
+                            borderSide: BorderSide(color: Colors.transparent),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.zero,
@@ -152,6 +174,7 @@ class _FeedbackFormPageState extends State<FeedbackFormPage> {
                             ),
                           ),
                         ),
+                        style: TextStyle(color: Colors.black87),
                       ),
                     ),
                     SizedBox(height: 20),
@@ -230,7 +253,7 @@ class _FeedbackFormPageState extends State<FeedbackFormPage> {
                       shadowColor: Colors.black38,
                       child: TextFormField(
                         controller: _messageController,
-                        maxLines: 3,
+                        maxLines: 4,
                         validator: validateMessage,
                         decoration: InputDecoration(
                           hintText: "Describe your issue",
@@ -314,11 +337,14 @@ class _FeedbackFormPageState extends State<FeedbackFormPage> {
 
                   ],
                 ),
+                  ],
+
               ),
             ),
           ),
         ),
       ),
+    ),
     );
   }
 
