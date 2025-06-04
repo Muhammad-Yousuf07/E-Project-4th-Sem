@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class SideDrawer extends StatelessWidget {
@@ -20,11 +21,6 @@ class SideDrawer extends StatelessWidget {
               onTap: () => Navigator.pushReplacementNamed(context, "/HomePage"),
             ),
 
-            drawerItem(
-              icon: Icons.login_outlined,
-              text: "Login",
-              onTap: () => Navigator.pushReplacementNamed(context, "/LoginPage"),
-            ),
 
             drawerItem(
               icon: Icons.support_agent_outlined,
@@ -37,6 +33,16 @@ class SideDrawer extends StatelessWidget {
               text: "Feedback",
               onTap: () => Navigator.pushReplacementNamed(context, "/FeedbackFormPage"),
             ),
+
+            drawerItem(
+              icon: Icons.logout,
+              text: "Logout",
+              onTap: () async {
+                await FirebaseAuth.instance.signOut();
+                Navigator.pushReplacementNamed(context, "/LoginPage");
+              },
+            ),
+
 
             const Divider(thickness: 1, height: 32),
             ListTile(
