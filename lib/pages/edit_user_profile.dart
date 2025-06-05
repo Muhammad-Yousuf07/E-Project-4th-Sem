@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../services/validation.dart';
 import '../widgets/auth_guard.dart';
 
 class EditProfilePage extends StatefulWidget {
@@ -152,7 +153,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 TextFormField(
                   controller: _fullNameController,
                   decoration: _inputDecoration("Full Name", Icons.person_outline),
-                  validator: (value) => value == null || value.isEmpty ? 'Enter full name' : null,
+                  validator: validateFullName,
+
                 ),
                 SizedBox(height: 16),
 
@@ -171,7 +173,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       ),
                       SizedBox(height: 6),
                       Text(
-                        "⚠️ Your email cannot be edited.",
+                        "⚠️ Your email cannot be edited!",
                         style: TextStyle(color: Colors.red.shade700, fontSize: 13),
                       ),
                       SizedBox(height: 16),
@@ -181,13 +183,13 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 TextFormField(
                   controller: _addressController,
                   decoration: _inputDecoration("Shipping Address", Icons.location_on_outlined),
-                  validator: (value) => value == null || value.isEmpty ? 'Enter address' : null,
+                  validator: validateAddress,
                 ),
                 SizedBox(height: 16),
                 TextFormField(
                   controller: _contactController,
                   decoration: _inputDecoration("Contact Number", Icons.phone_outlined),
-                  validator: (value) => value == null || value.isEmpty ? 'Enter contact number' : null,
+                  validator: validatePnoneNumber,
                 ),
                 SizedBox(height: 32),
                 Text("Change Password", style: TextStyle(fontWeight: FontWeight.bold)),

@@ -46,7 +46,6 @@ class SideDrawer extends StatelessWidget {
               onTap: () => Navigator.pushReplacementNamed(context, "/EditUserPage"),
             ),
 
-        // static const String routeName = '/EditUserPage';
 
             drawerItem(
               icon: Icons.logout,
