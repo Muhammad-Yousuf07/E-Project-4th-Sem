@@ -13,6 +13,7 @@ import 'package:authentication/routes/routes.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
+
 Future<void> main() async{
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
@@ -29,11 +30,8 @@ class MyApp extends StatelessWidget {
       home: LaunchingPage(),
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        textTheme: TextTheme(
-          // bodyLarge: TextStyle(fontFamily: "font-1"),
-          // bodyMedium: TextStyle(fontFamily: "font-1"),
-          // bodySmall: TextStyle(fontFamily: "font-1"),
-        ),
+
+
         appBarTheme: AppBarTheme(
           titleTextStyle: TextStyle(color: Colors.white, fontWeight: FontWeight.w500, fontSize: 24),
           iconTheme: IconThemeData(color: Colors.white, weight: 20, size: 26)

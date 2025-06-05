@@ -39,6 +39,7 @@ dependencies:
   cloud_firestore: ^5.6.8
   flutter_chat_ui: ^2.3.1
   flutter_chat_types: ^3.6.2
+  video_player: ^2.10.0
 
 dev_dependencies:
   flutter_test:
@@ -64,6 +65,23 @@ flutter:
 
   assets:
     - assets/images/
+    - assets/videos/
+
+  fonts:
+    - family: Poppins
+      fonts:
+        - asset: assets/fonts/poppins/Poppins-ExtraBold.ttf
+          weight: 800
+        - asset: assets/fonts/poppins/Poppins-Black.ttf
+          weight: 900
+        - asset: assets/fonts/poppins/Poppins-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/poppins/Poppins-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/poppins/Poppins-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/poppins/Poppins-Bold.ttf
+          weight: 700
 
   # To add assets to your application, add an assets section, like this:
   # assets:
