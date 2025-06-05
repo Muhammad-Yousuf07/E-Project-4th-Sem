@@ -143,7 +143,7 @@ class _ChatPage extends State<ChatPage> {
                       Padding(
                         padding: const EdgeInsets.only(left: 4, bottom: 8),
                         child: Text(
-                          "⚠️ Email can not be changed",
+                          "⚠️ Your email cannot be edited!",
                           style: TextStyle(
                             color: Colors.red.shade700,
                             fontWeight: FontWeight.w600,
