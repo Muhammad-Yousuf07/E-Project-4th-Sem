@@ -106,7 +106,8 @@ class _HomePageState extends State<HomePage> {
                     children: [
 
                       Container(
-                        height: 377,
+                        height: MediaQuery.of(context).size.height * 0.69, // 85% of screen height
+
                         width: double.infinity,
                         child: Opacity(
                           opacity: 1, // Added opacity here
@@ -200,6 +201,8 @@ class _HomePageState extends State<HomePage> {
                   ),
 
 
+
+
                 buildWatchShowcaseSection(
                   context: context,
                   backgroundImage: 'assets/images/watch_bg_1.jpg',
@@ -209,13 +212,35 @@ class _HomePageState extends State<HomePage> {
                 ),
                 buildWatchShowcaseSection(
                   context: context,
-                  backgroundImage: 'assets/images/web_bg_2.jpg',
+                  backgroundImage: 'assets/images/watch_bg_2.jpg',
                   watchImage: 'assets/images/watch1.png',
                   title: "OYSTER PERPETUAL",
                   subtitle: "DIVE INTO EXCELLENCE",
                 ),
 
+                buildWatchShowcaseSection(
+                  context: context,
+                  backgroundImage: 'assets/images/watch_bg_3.jpg',
+                  watchImage: 'assets/images/watch3.webp',
+                  title: "HORIZON X",
+                  subtitle: "BEYOND THE LIMITS",
+                ),
 
+                buildWatchShowcaseSection(
+                  context: context,
+                  backgroundImage: 'assets/images/watch_bg_4.jpg',
+                  watchImage: 'assets/images/watch4.webp',
+                  title: "STORM MARK",
+                  subtitle: "WHERE SAND RAGES",
+                ),
+
+                buildWatchShowcaseSection(
+                  context: context,
+                  backgroundImage: 'assets/images/watch_bg_5.jpg',
+                  watchImage: 'assets/images/watch5.png',
+                  title: "PATEK PHILIPPE",
+                  subtitle: "THE GOLDEN BRIDGE",
+                ),
 
               ],
             ),
@@ -237,7 +262,8 @@ class _HomePageState extends State<HomePage> {
 
     return Container(
       width: double.infinity,
-      height: isMobile ? 360 : 500,
+
+      height: isMobile ? 420 : 560,
       decoration: BoxDecoration(
         image: DecorationImage(
           image: AssetImage(backgroundImage),
@@ -276,19 +302,60 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           Positioned(
-            bottom: 30,
+            bottom: isMobile ? 80 : 100,
             child: Image.asset(
               watchImage,
               height: isMobile ? 200 : 280,
-
-
               fit: BoxFit.contain,
+            ),
+          ),
+          Positioned(
+            bottom: isMobile ? 25 : 30,
+            child: ElevatedButton(
+              onPressed: () {
+
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+
+                padding: EdgeInsets.symmetric(
+                  horizontal: isMobile ? 28 : 40,
+                  vertical: isMobile ? 18 : 16,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(0),
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    "DISCOVER MORE",
+                    style: TextStyle(
+                      fontFamily: 'Poppins',
+                      letterSpacing: 2,
+                      fontSize: isMobile ? 14 : 16,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.white,
+                    ),
+                  ),
+                  SizedBox(width: 8),
+                  Icon(
+                    Icons.arrow_forward_ios,
+                    color: Colors.white,
+                    size: isMobile ? 14 : 16,
+                  ),
+                ],
+              ),
+
             ),
           ),
         ],
       ),
     );
   }
+
 
 
 
