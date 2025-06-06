@@ -106,7 +106,7 @@ class _HomePageState extends State<HomePage> {
                     children: [
 
                       Container(
-                        height: 200,
+                        height: 377,
                         width: double.infinity,
                         child: Opacity(
                           opacity: 1, // Added opacity here
@@ -200,6 +200,22 @@ class _HomePageState extends State<HomePage> {
                   ),
 
 
+                buildWatchShowcaseSection(
+                  context: context,
+                  backgroundImage: 'assets/images/watch_bg_1.jpg',
+                  watchImage: 'assets/images/watch2.webp',
+                  title: "SUBMARINER DATE ",
+                  subtitle: "NEW ARRIVAL",
+                ),
+                buildWatchShowcaseSection(
+                  context: context,
+                  backgroundImage: 'assets/images/web_bg_2.jpg',
+                  watchImage: 'assets/images/watch1.png',
+                  title: "OYSTER PERPETUAL",
+                  subtitle: "DIVE INTO EXCELLENCE",
+                ),
+
+
 
               ],
             ),
@@ -208,6 +224,73 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
+
+
+  Widget buildWatchShowcaseSection({
+    required BuildContext context,
+    required String backgroundImage,
+    required String watchImage,
+    required String title,
+    required String subtitle,
+  }) {
+    final isMobile = MediaQuery.of(context).size.width < 600;
+
+    return Container(
+      width: double.infinity,
+      height: isMobile ? 360 : 500,
+      decoration: BoxDecoration(
+        image: DecorationImage(
+          image: AssetImage(backgroundImage),
+          fit: BoxFit.cover,
+        ),
+      ),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Positioned(
+            top: isMobile ? 40 : 70,
+            child: Column(
+              children: [
+                Text(
+                  subtitle,
+                  style: TextStyle(
+                    fontSize: isMobile ? 14 : 18,
+                    fontWeight: FontWeight.w400,
+                    color: Colors.white.withOpacity(0.8),
+                    letterSpacing: 2,
+                    fontFamily: 'Poppins',
+                  ),
+                ),
+                SizedBox(height: 10),
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: isMobile ? 22 : 36,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    letterSpacing: 1.5,
+                    fontFamily: 'Poppins',
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Positioned(
+            bottom: 30,
+            child: Image.asset(
+              watchImage,
+              height: isMobile ? 200 : 280,
+
+
+              fit: BoxFit.contain,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+
 
   Widget _buildStaticTimer() {
     final hours = _remainingTime.inHours.toString().padLeft(2, '0');
