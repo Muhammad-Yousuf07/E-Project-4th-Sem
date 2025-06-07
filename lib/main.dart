@@ -1,4 +1,5 @@
 import 'package:authentication/firebase_options.dart';
+import 'package:authentication/pages/admin_page.dart';
 import 'package:authentication/pages/chat_page.dart';
 import 'package:authentication/pages/customer_support.dart';
 import 'package:authentication/pages/edit_user_profile.dart';
@@ -49,7 +50,7 @@ class MyApp extends StatelessWidget {
         PageRoutes.userCustomerSupport : (context) => SupportHomePage(),
         PageRoutes.userFeedbackForm : (context) => FeedbackFormPage(),
         PageRoutes.userEditProfile : (context) => EditProfilePage(),
-
+        PageRoutes.adminPanel : (context) => AdminPage(),
       },
     );
   }

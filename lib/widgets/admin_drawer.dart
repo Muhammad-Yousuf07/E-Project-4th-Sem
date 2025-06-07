@@ -5,9 +5,8 @@ import 'package:flutter/material.dart';
 final user = FirebaseAuth.instance.currentUser;
 final userName = user?.displayName ?? 'No Name';
 
-
-class SideDrawer extends StatelessWidget {
-  const SideDrawer({super.key});
+class AdminSideDrawer extends StatelessWidget {
+  const AdminSideDrawer({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -24,20 +23,7 @@ class SideDrawer extends StatelessWidget {
             drawerItem(
               icon: Icons.home_outlined,
               text: "Home",
-              onTap: () => Navigator.pushReplacementNamed(context, "/HomePage"),
-            ),
-
-
-            drawerItem(
-              icon: Icons.support_agent_outlined,
-              text: "Customer Support",
-              onTap: () => Navigator.pushReplacementNamed(context, "/CustomerSupportPage"),
-            ),
-
-            drawerItem(
-              icon: Icons.feedback_outlined,
-              text: "Feedback",
-              onTap: () => Navigator.pushReplacementNamed(context, "/FeedbackFormPage"),
+              onTap: () => Navigator.pushReplacementNamed(context, "/AdminPage"),
             ),
 
             drawerItem(
@@ -45,7 +31,6 @@ class SideDrawer extends StatelessWidget {
               text: "Edit Profile",
               onTap: () => Navigator.pushReplacementNamed(context, "/EditUserPage"),
             ),
-
 
             drawerItem(
               icon: Icons.logout,
@@ -157,7 +142,7 @@ class SideDrawer extends StatelessWidget {
             Column(
               children: [
                 Text(
-                  "Welcome!",
+                  "Welcome! Admin",
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 20,
@@ -206,4 +191,9 @@ class SideDrawer extends StatelessWidget {
       ),
     );
   }
+
 }
+
+
+
+

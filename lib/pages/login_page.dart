@@ -1,5 +1,6 @@
 import 'package:authentication/services/authentication.dart';
 import 'package:authentication/services/validation.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
@@ -272,15 +273,26 @@ class _LoginPageState extends State<LoginPage> {
       });
 
       if (result == null) {
-        ScaffoldMessenger.of(
-          context
-        ).showSnackBar(SnackBar(content: Text("\"$email\" Login Successfully")));
+        final user = FirebaseAuth.instance.currentUser;
+        final userDoc = await FirebaseFirestore.instance.collection('users').doc(user!.uid).get();
+        final role = userDoc['role'];
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("\"$email\" Login Successfully")),
+        );
+
         clearData();
-        Navigator.pushReplacementNamed(context, "/HomePage");
+
+        if (role == 'admin') {
+          Navigator.pushReplacementNamed(context, "/AdminPage");
+        } else {
+          Navigator.pushReplacementNamed(context, "/HomePage");
+        }
+
       } else {
-        ScaffoldMessenger.of(
-          context
-        ).showSnackBar(SnackBar(content: Text(result.toString())));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(result.toString())),
+        );
       }
     }
   }

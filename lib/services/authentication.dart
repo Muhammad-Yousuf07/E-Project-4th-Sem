@@ -41,6 +41,7 @@ class AuthenticationHelper{
         'phone': phone,
         'address': address,
         'createdAt': Timestamp.now(),
+        'role': 'user',
       });
 
       return null;
@@ -50,6 +51,7 @@ class AuthenticationHelper{
       return 'Something went wrong';
     }
   }
+
 
 
 

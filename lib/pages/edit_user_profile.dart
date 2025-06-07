@@ -1,4 +1,3 @@
-import 'package:authentication/pages/home_page.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -127,11 +126,24 @@ class _EditProfilePageState extends State<EditProfilePage> {
           title: const Text("Edit Profile", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
           leading: IconButton(
             icon: Icon(Icons.arrow_back, color: Colors.white),
-            onPressed: () {
-              Navigator.pushReplacement(
-                  context, MaterialPageRoute(builder: (context) => HomePage()));
+            onPressed: () async {
+              final user = FirebaseAuth.instance.currentUser;
+
+              if (user != null) {
+                final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+                final role = doc.data()?['role'];
+
+                if (role == 'admin') {
+                  Navigator.pushReplacementNamed(context, '/AdminPage');
+                } else {
+                  Navigator.pushReplacementNamed(context, '/HomePage');
+                }
+              } else {
+                Navigator.pushReplacementNamed(context, '/LoginPage');
+              }
             },
           ),
+
           backgroundColor: Color(0xFF0e99c9),
           iconTheme: IconThemeData(color: Colors.white, weight: 20, size: 26),
           centerTitle: true,

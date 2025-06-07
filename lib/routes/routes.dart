@@ -1,3 +1,4 @@
+import 'package:authentication/pages/admin_page.dart';
 import 'package:authentication/pages/chat_page.dart';
 import 'package:authentication/pages/customer_support.dart';
 import 'package:authentication/pages/faq_page.dart';
@@ -21,6 +22,7 @@ class PageRoutes{
   static const String userCustomerSupport = SupportHomePage.routeName;
   static const String userFeedbackForm = FeedbackFormPage.routeName;
   static const String userEditProfile = EditProfilePage.routeName;
+  static const String adminPanel = AdminPage.routeName;
 
 
 

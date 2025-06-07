@@ -18,6 +18,7 @@ class _SignupPageState extends State<SignupPage> {
   final signupEmailController = TextEditingController();
   final signupPasswordController = TextEditingController();
 
+  String? uuid;
   String? name = "";
   String? phone = "";
   String? address = "";
