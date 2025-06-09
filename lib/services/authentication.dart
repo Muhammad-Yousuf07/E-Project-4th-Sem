@@ -5,6 +5,8 @@ class AuthenticationHelper{
   final FirebaseAuth _auth = FirebaseAuth.instance;
   get user => _auth.currentUser;
 
+  get currentUser => null;
+
 
   Future signIn({required String email, required String password}) async{
     try{

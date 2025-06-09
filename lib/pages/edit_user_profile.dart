@@ -104,11 +104,27 @@ class _EditProfilePageState extends State<EditProfilePage> {
         'uid': user.uid,
       }, SetOptions(merge: true));
 
+
+      if (user != null) {
+        final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+        final role = doc.data()?['role'];
+        if (role == 'admin') {
+          Navigator.pushReplacementNamed(context, '/AdminPage');
+        } else{
+          Navigator.pushReplacementNamed(context, '/HomePage');
+        }
+      } else {
+        Navigator.pushReplacementNamed(context, '/LoginPage');
+      }
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Profile updated successfully')),
       );
-      Navigator.pop(context);
+
+
+
+
+
     } on FirebaseAuthException catch (e) {
       setState(() => _errorText = e.message);
     } catch (e) {
@@ -127,11 +143,12 @@ class _EditProfilePageState extends State<EditProfilePage> {
           leading: IconButton(
             icon: Icon(Icons.arrow_back, color: Colors.white),
             onPressed: () async {
-              final user = FirebaseAuth.instance.currentUser;
+              if (_loading) return; // Prevent navigation during save
 
+              final user = FirebaseAuth.instance.currentUser;
               if (user != null) {
                 final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
-                final role = doc.data()?['role'];
+                final role = doc.data()?['role'] ?? 'user';
 
                 if (role == 'admin') {
                   Navigator.pushReplacementNamed(context, '/AdminPage');

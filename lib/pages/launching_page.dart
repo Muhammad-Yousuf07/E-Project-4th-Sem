@@ -1,13 +1,37 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+
+
+Future<void> _checkUserAndNavigate(BuildContext context) async {
+  final user = FirebaseAuth.instance.currentUser;
+
+  if (user != null) {
+    final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+    final role = doc.data()?['role'];
+    if (role == 'admin') {
+      Navigator.pushReplacementNamed(context, '/AdminPage');
+    } else{
+      Navigator.pushReplacementNamed(context, '/HomePage');
+    }
+  } else {
+    Navigator.pushReplacementNamed(context, '/LaunchingPage');
+  }
+
+
+
+}
 
 class LaunchingPage extends StatefulWidget {
   const LaunchingPage({super.key});
   static const String routeName = '/LaunchingPage';
 
+
+
   @override
   State<LaunchingPage> createState() => _LaunchingPageState();
 }
+
 
 class _LaunchingPageState extends State<LaunchingPage> {
 
@@ -57,7 +81,12 @@ class _LaunchingPageState extends State<LaunchingPage> {
                 height: 40,
                 child: TextButton(
                   onPressed: () {
-                    Navigator.pushReplacementNamed(context, "/LoginPage");
+                    final user = FirebaseAuth.instance.currentUser;
+                    if (user == null) {
+                      Navigator.pushReplacementNamed(context, "/LoginPage");
+                    } else {
+                      _checkUserAndNavigate(context); // Re-check role if user is already logged in
+                    }
                   },
                   style: TextButton.styleFrom(
                     backgroundColor: Color(0xFF0e99c9),
@@ -86,3 +115,5 @@ class _LaunchingPageState extends State<LaunchingPage> {
     );
   }
 }
+
+

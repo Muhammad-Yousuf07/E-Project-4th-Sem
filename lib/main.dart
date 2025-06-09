@@ -1,14 +1,17 @@
 import 'package:authentication/firebase_options.dart';
+import 'package:authentication/pages/FAQAdmin.dart';
 import 'package:authentication/pages/admin_page.dart';
 import 'package:authentication/pages/chat_page.dart';
 import 'package:authentication/pages/customer_support.dart';
 import 'package:authentication/pages/edit_user_profile.dart';
 import 'package:authentication/pages/faq_page.dart';
+import 'package:authentication/pages/feedback.dart';
 import 'package:authentication/pages/feedback_page.dart';
 import 'package:authentication/pages/forget_password.dart';
 import 'package:authentication/pages/home_page.dart';
 import 'package:authentication/pages/launching_page.dart';
 import 'package:authentication/pages/login_page.dart';
+import 'package:authentication/pages/products.dart';
 import 'package:authentication/pages/signup_page.dart';
 import 'package:authentication/routes/routes.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -39,7 +42,7 @@ class MyApp extends StatelessWidget {
         ),
       ),
       initialRoute: "/LaunchingPage",
-      routes: {
+      routes: <String, WidgetBuilder>{
         PageRoutes.userHome : (context) => HomePage(),
         PageRoutes.userLogin : (context) => LoginPage(),
         PageRoutes.userSignup : (context) => SignupPage(),
@@ -50,7 +53,12 @@ class MyApp extends StatelessWidget {
         PageRoutes.userCustomerSupport : (context) => SupportHomePage(),
         PageRoutes.userFeedbackForm : (context) => FeedbackFormPage(),
         PageRoutes.userEditProfile : (context) => EditProfilePage(),
+
+        // admin
         PageRoutes.adminPanel : (context) => AdminPage(),
+        PageRoutes.productRoute : (context) => ProductsPage(),
+        PageRoutes.feedbackroute : (context) => FeedbackManagementPage(),
+        PageRoutes.faqsadminroute : (context) => FAQAdminPage(),
       },
     );
   }

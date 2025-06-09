@@ -1,9 +1,6 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-
-
-final user = FirebaseAuth.instance.currentUser;
-final userName = user?.displayName ?? 'No Name';
 
 class AdminSideDrawer extends StatelessWidget {
   const AdminSideDrawer({super.key});
@@ -17,7 +14,7 @@ class AdminSideDrawer extends StatelessWidget {
         child: ListView(
           padding: EdgeInsets.zero,
           children: <Widget>[
-            drawerHeader(),
+            const AdminDrawerHeader(),  // Updated header component
             const SizedBox(height: 16),
 
             drawerItem(
@@ -25,6 +22,32 @@ class AdminSideDrawer extends StatelessWidget {
               text: "Home",
               onTap: () => Navigator.pushReplacementNamed(context, "/AdminPage"),
             ),
+
+            drawerItem(
+              icon: Icons.verified_user_rounded,
+              text: "Manage Users",
+              onTap: () => Navigator.pushReplacementNamed(context, "/"),
+            ),
+
+            drawerItem(
+              icon: Icons.inventory_2_outlined,
+              text: "Manage Products",
+              onTap: () => Navigator.pushReplacementNamed(context, "/ProductManagement"),
+            ),
+
+            drawerItem(
+              icon: Icons.feedback_outlined,
+              text: "View User Feedbacks",
+              onTap: () => Navigator.pushReplacementNamed(context, "/FeedbackManagement"),
+            ),
+
+            drawerItem(
+              icon: Icons.question_answer_outlined,
+              text: "Manage FAQs",
+              onTap: () => Navigator.pushReplacementNamed(context, "/FAQAdminPage"),
+            ),
+
+
 
             drawerItem(
               icon: Icons.edit_note,
@@ -99,8 +122,6 @@ class AdminSideDrawer extends StatelessWidget {
               },
             ),
 
-
-
             const Divider(thickness: 1, height: 32),
             ListTile(
               title: Text(
@@ -118,7 +139,64 @@ class AdminSideDrawer extends StatelessWidget {
     );
   }
 
-  Widget drawerHeader() {
+  Widget drawerItem({
+    required IconData icon,
+    required String text,
+    required GestureTapCallback onTap,
+  }) {
+    return ListTile(
+      leading: Icon(icon, color: Color(0xFF0e99c9)),
+      title: Text(
+        text,
+        style: TextStyle(
+          color: Colors.black87,
+          fontSize: 16,
+        ),
+      ),
+      hoverColor: Colors.grey.shade200,
+      onTap: onTap,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+      ),
+    );
+  }
+}
+
+class AdminDrawerHeader extends StatelessWidget {
+  const AdminDrawerHeader({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+
+    if (userId == null) {
+      return _buildHeader('Anonymous', true);
+    }
+
+    return StreamBuilder<DocumentSnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return _buildHeader('Error Loading', true);
+        }
+
+        if (!snapshot.hasData || !snapshot.data!.exists) {
+          return _buildHeader('Anonymous', true);
+        }
+
+        final userData = snapshot.data!.data() as Map<String, dynamic>;
+        final userName = userData['name'] ?? 'Anonymous';
+
+        return _buildHeader(userName, true);
+      },
+    );
+  }
+
+  Widget _buildHeader(String userName, bool isAdmin) {
     return Container(
       height: 175,
       child: DrawerHeader(
@@ -134,7 +212,7 @@ class AdminSideDrawer extends StatelessWidget {
             const CircleAvatar(
               radius: 40,
               child: CircleAvatar(
-                radius : 38,
+                radius: 38,
                 backgroundImage: AssetImage("assets/images/user_avatar.png"),
               ),
             ),
@@ -168,32 +246,4 @@ class AdminSideDrawer extends StatelessWidget {
       ),
     );
   }
-
-  Widget drawerItem({
-    required IconData icon,
-    required String text,
-    required GestureTapCallback onTap,
-  }) {
-    return ListTile(
-      leading: Icon(icon, color: Color(0xFF0e99c9)),
-      title: Text(
-        text,
-        style: TextStyle(
-          color: Colors.black87,
-          fontSize: 16,
-        ),
-      ),
-      hoverColor: Colors.grey.shade200,
-      onTap: onTap,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 20),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-      ),
-    );
-  }
-
 }
-
-
-
-

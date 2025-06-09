@@ -1,10 +1,6 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-
-
-final user = FirebaseAuth.instance.currentUser;
-final userName = user?.displayName ?? 'No Name';
-
 
 class SideDrawer extends StatelessWidget {
   const SideDrawer({super.key});
@@ -18,7 +14,7 @@ class SideDrawer extends StatelessWidget {
         child: ListView(
           padding: EdgeInsets.zero,
           children: <Widget>[
-            drawerHeader(),
+            const FirestoreUserHeader(),  // Updated to use Firestore data
             const SizedBox(height: 16),
 
             drawerItem(
@@ -26,7 +22,6 @@ class SideDrawer extends StatelessWidget {
               text: "Home",
               onTap: () => Navigator.pushReplacementNamed(context, "/HomePage"),
             ),
-
 
             drawerItem(
               icon: Icons.support_agent_outlined,
@@ -45,7 +40,6 @@ class SideDrawer extends StatelessWidget {
               text: "Edit Profile",
               onTap: () => Navigator.pushReplacementNamed(context, "/EditUserPage"),
             ),
-
 
             drawerItem(
               icon: Icons.logout,
@@ -114,8 +108,6 @@ class SideDrawer extends StatelessWidget {
               },
             ),
 
-
-
             const Divider(thickness: 1, height: 32),
             ListTile(
               title: Text(
@@ -133,7 +125,64 @@ class SideDrawer extends StatelessWidget {
     );
   }
 
-  Widget drawerHeader() {
+  Widget drawerItem({
+    required IconData icon,
+    required String text,
+    required GestureTapCallback onTap,
+  }) {
+    return ListTile(
+      leading: Icon(icon, color: Color(0xFF0e99c9)),
+      title: Text(
+        text,
+        style: TextStyle(
+          color: Colors.black87,
+          fontSize: 16,
+        ),
+      ),
+      hoverColor: Colors.grey.shade200,
+      onTap: onTap,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+      ),
+    );
+  }
+}
+
+class FirestoreUserHeader extends StatelessWidget {
+  const FirestoreUserHeader({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+
+    if (userId == null) {
+      return _buildHeaderFallback('No Name');
+    }
+
+    return StreamBuilder<DocumentSnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return _buildHeaderFallback('Error Loading');
+        }
+
+        if (!snapshot.hasData || !snapshot.data!.exists) {
+          return _buildHeaderFallback('No Name');
+        }
+
+        final userData = snapshot.data!.data() as Map<String, dynamic>;
+        final userName = userData['name'] ?? 'No Name';  // Using 'name' field from Firestore
+
+        return _buildHeader(userName);
+      },
+    );
+  }
+
+  Widget _buildHeader(String userName) {
     return Container(
       height: 175,
       child: DrawerHeader(
@@ -149,7 +198,7 @@ class SideDrawer extends StatelessWidget {
             const CircleAvatar(
               radius: 40,
               child: CircleAvatar(
-                radius : 38,
+                radius: 38,
                 backgroundImage: AssetImage("assets/images/user_avatar.png"),
               ),
             ),
@@ -184,26 +233,7 @@ class SideDrawer extends StatelessWidget {
     );
   }
 
-  Widget drawerItem({
-    required IconData icon,
-    required String text,
-    required GestureTapCallback onTap,
-  }) {
-    return ListTile(
-      leading: Icon(icon, color: Color(0xFF0e99c9)),
-      title: Text(
-        text,
-        style: TextStyle(
-          color: Colors.black87,
-          fontSize: 16,
-        ),
-      ),
-      hoverColor: Colors.grey.shade200,
-      onTap: onTap,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 20),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-      ),
-    );
+  Widget _buildHeaderFallback(String userName) {
+    return _buildHeader(userName);
   }
 }
