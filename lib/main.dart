@@ -13,6 +13,7 @@ import 'package:authentication/pages/launching_page.dart';
 import 'package:authentication/pages/login_page.dart';
 import 'package:authentication/pages/products.dart';
 import 'package:authentication/pages/signup_page.dart';
+import 'package:authentication/pages/supportAdmin.dart';
 import 'package:authentication/routes/routes.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -59,6 +60,8 @@ class MyApp extends StatelessWidget {
         PageRoutes.productRoute : (context) => ProductsPage(),
         PageRoutes.feedbackroute : (context) => FeedbackManagementPage(),
         PageRoutes.faqsadminroute : (context) => FAQAdminPage(),
+        PageRoutes.supportadminroute : (context) => SupportAdminPage()
+
       },
     );
   }

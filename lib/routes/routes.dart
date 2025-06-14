@@ -9,6 +9,7 @@ import 'package:authentication/pages/launching_page.dart';
 import 'package:authentication/pages/signup_page.dart';
 import 'package:authentication/pages/feedback_page.dart';
 import 'package:authentication/pages/edit_user_profile.dart';
+import 'package:authentication/pages/supportAdmin.dart';
 import 'package:flutter/cupertino.dart';
 
 import '../pages/home_page.dart';
@@ -33,5 +34,6 @@ class PageRoutes{
   static const String productRoute = ProductsPage.routeName;
   static const String feedbackroute = FeedbackManagementPage.routeName;
   static const String faqsadminroute = FAQAdminPage.routeName;
+  static const String supportadminroute = SupportAdminPage.routeName;
 
 }

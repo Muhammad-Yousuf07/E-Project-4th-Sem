@@ -2,6 +2,7 @@ import 'package:authentication/widgets/admin_drawer.dart';
 import 'package:authentication/widgets/auth_guard.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import '../services/authentication.dart';
@@ -16,10 +17,12 @@ class ProductsPage extends StatefulWidget {
 
 class _ProductsPageState extends State<ProductsPage> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseStorage _storage = FirebaseStorage.instance;
   final ImagePicker _picker = ImagePicker();
   List<XFile>? _imageFiles = [];
   TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
+  String? _selectedCategory; // For category dropdown
 
   @override
   void dispose() {
@@ -34,7 +37,7 @@ class _ProductsPageState extends State<ProductsPage> {
         drawer: const AdminSideDrawer(),
         appBar: AppBar(
           title: const Text(
-            'Admin Panel',
+            'Product Management',
             style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
           ),
           actions: <Widget>[
@@ -140,6 +143,7 @@ class _ProductsPageState extends State<ProductsPage> {
                       final isAvailable = data['isAvailable'] ?? true;
                       final availability = stock > 0 && isAvailable ? 'Available' : 'N/A';
                       final images = List<String>.from(data['images'] ?? []);
+                      final category = data['category'] ?? 'No Category';
 
                       return Card(
                         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -190,6 +194,11 @@ class _ProductsPageState extends State<ProductsPage> {
                                       const SizedBox(height: 4),
                                       Text(
                                         'Price: \$${data['price']?.toStringAsFixed(2) ?? '0.00'}',
+                                        style: const TextStyle(fontSize: 14),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        'Category: $category',
                                         style: const TextStyle(fontSize: 14),
                                       ),
                                       const SizedBox(height: 4),
@@ -257,6 +266,7 @@ class _ProductsPageState extends State<ProductsPage> {
     final stock = data['stock'] ?? 0;
     final isAvailable = data['isAvailable'] ?? true;
     final availability = stock > 0 && isAvailable ? 'Available' : 'N/A';
+    final category = data['category'] ?? 'No Category';
 
     showDialog(
       context: context,
@@ -298,6 +308,11 @@ class _ProductsPageState extends State<ProductsPage> {
                 const SizedBox(height: 16),
                 Text(
                   'Price: \$${data['price']?.toStringAsFixed(2) ?? '0.00'}',
+                  style: const TextStyle(fontSize: 16),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Category: $category',
                   style: const TextStyle(fontSize: 16),
                 ),
                 const SizedBox(height: 8),
@@ -348,6 +363,7 @@ class _ProductsPageState extends State<ProductsPage> {
     final descController = TextEditingController();
     bool isAvailable = true;
     _imageFiles = [];
+    _selectedCategory = null;
 
     await showDialog(
       context: context,
@@ -379,6 +395,27 @@ class _ProductsPageState extends State<ProductsPage> {
                         keyboardType: TextInputType.number,
                         validator: (value) => value?.isEmpty ?? true ? 'Required' : null,
                       ),
+                      const SizedBox(height: 10),
+                      DropdownButtonFormField<String>(
+                        value: _selectedCategory,
+                        decoration: const InputDecoration(
+                          labelText: 'Category*',
+                          border: OutlineInputBorder(),
+                        ),
+                        items: ['Analog', 'Digital'].map((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(value),
+                          );
+                        }).toList(),
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedCategory = value;
+                          });
+                        },
+                        validator: (value) => value == null ? 'Please select a category' : null,
+                      ),
+                      const SizedBox(height: 10),
                       TextFormField(
                         controller: descController,
                         decoration: const InputDecoration(labelText: 'Description'),
@@ -438,16 +475,27 @@ class _ProductsPageState extends State<ProductsPage> {
                   onPressed: () async {
                     if (formKey.currentState!.validate()) {
                       try {
-                        // TODO: Implement image upload to Firebase Storage here
-                        // and get download URLs to store in Firestore
+                        // Upload images to Firebase Storage
+                        List<String> imageUrls = [];
+                        if (_imageFiles != null && _imageFiles!.isNotEmpty) {
+                          for (var imageFile in _imageFiles!) {
+                            final file = File(imageFile.path);
+                            final fileName = DateTime.now().millisecondsSinceEpoch.toString();
+                            final ref = _storage.ref().child('product_images/$fileName');
+                            await ref.putFile(file);
+                            final url = await ref.getDownloadURL();
+                            imageUrls.add(url);
+                          }
+                        }
 
                         await _firestore.collection('products').add({
                           'name': nameController.text,
                           'price': double.parse(priceController.text),
                           'stock': int.parse(stockController.text),
+                          'category': _selectedCategory,
                           'isAvailable': isAvailable,
                           'description': descController.text,
-                          'images': [], // Add image URLs here after upload
+                          'images': imageUrls,
                           'createdAt': FieldValue.serverTimestamp(),
                           'updatedAt': FieldValue.serverTimestamp(),
                         });
@@ -482,6 +530,7 @@ class _ProductsPageState extends State<ProductsPage> {
     final descController = TextEditingController(text: data['description']);
     bool isAvailable = data['isAvailable'] ?? true;
     _imageFiles = [];
+    _selectedCategory = data['category'];
 
     await showDialog(
       context: context,
@@ -513,6 +562,27 @@ class _ProductsPageState extends State<ProductsPage> {
                         keyboardType: TextInputType.number,
                         validator: (value) => value?.isEmpty ?? true ? 'Required' : null,
                       ),
+                      const SizedBox(height: 10),
+                      DropdownButtonFormField<String>(
+                        value: _selectedCategory,
+                        decoration: const InputDecoration(
+                          labelText: 'Category*',
+                          border: OutlineInputBorder(),
+                        ),
+                        items: ['Analog', 'Digital'].map((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(value),
+                          );
+                        }).toList(),
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedCategory = value;
+                          });
+                        },
+                        validator: (value) => value == null ? 'Please select a category' : null,
+                      ),
+                      const SizedBox(height: 10),
                       TextFormField(
                         controller: descController,
                         decoration: const InputDecoration(labelText: 'Description'),
@@ -572,14 +642,29 @@ class _ProductsPageState extends State<ProductsPage> {
                   onPressed: () async {
                     if (formKey.currentState!.validate()) {
                       try {
-                        // TODO: Implement image upload/update logic here
+                        // Get existing images
+                        List<String> imageUrls = List<String>.from(data['images'] ?? []);
+
+                        // Upload new images if any
+                        if (_imageFiles != null && _imageFiles!.isNotEmpty) {
+                          for (var imageFile in _imageFiles!) {
+                            final file = File(imageFile.path);
+                            final fileName = DateTime.now().millisecondsSinceEpoch.toString();
+                            final ref = _storage.ref().child('product_images/$fileName');
+                            await ref.putFile(file);
+                            final url = await ref.getDownloadURL();
+                            imageUrls.add(url);
+                          }
+                        }
 
                         await _firestore.collection('products').doc(productId).update({
                           'name': nameController.text,
                           'price': double.parse(priceController.text),
                           'stock': int.parse(stockController.text),
+                          'category': _selectedCategory,
                           'isAvailable': isAvailable,
                           'description': descController.text,
+                          'images': imageUrls,
                           'updatedAt': FieldValue.serverTimestamp(),
                         });
 

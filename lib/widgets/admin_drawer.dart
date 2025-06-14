@@ -42,6 +42,12 @@ class AdminSideDrawer extends StatelessWidget {
             ),
 
             drawerItem(
+              icon: Icons.support_outlined,
+              text: "View Support Messages",
+              onTap: () => Navigator.pushReplacementNamed(context, "/SupportAdminPage"),
+            ),
+
+            drawerItem(
               icon: Icons.question_answer_outlined,
               text: "Manage FAQs",
               onTap: () => Navigator.pushReplacementNamed(context, "/FAQAdminPage"),

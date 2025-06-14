@@ -57,8 +57,12 @@ class _AdminPageState extends State<AdminPage> {
         drawer: AdminSideDrawer(),
         appBar: AppBar(
           title: const Text(
-            'Admin Panel',
-            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+            'Admin Dashboard',
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 0.5,
+            ),
           ),
           actions: <Widget>[
             IconButton(
@@ -74,12 +78,14 @@ class _AdminPageState extends State<AdminPage> {
                   });
                 }
               },
-              icon: Icon(Icons.logout_outlined),
+              icon: Icon(Icons.logout, size: 26),
+              tooltip: 'Logout',
             ),
           ],
           backgroundColor: Color(0xFF0e99c9),
-          iconTheme: IconThemeData(color: Colors.white, weight: 20, size: 26),
+          iconTheme: IconThemeData(color: Colors.white, size: 28),
           centerTitle: true,
+          elevation: 0,
         ),
         body: _buildBody(),
       ),
@@ -87,20 +93,66 @@ class _AdminPageState extends State<AdminPage> {
   }
 
   Widget _buildBody() {
-    if (isLoading) return Center(child: CircularProgressIndicator());
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Color(0xFF0e99c9).withOpacity(0.05),
+            Colors.white,
+          ],
+        ),
+      ),
+      child: _buildContent(),
+    );
+  }
+
+  Widget _buildContent() {
+    if (isLoading) {
+      return Center(
+        child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF0e99c9)),
+        ),
+      );
+    }
+
     if (errorMessage != null) {
-      return Center(child: Text(errorMessage!, style: TextStyle(color: Colors.red)));
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.error_outline, color: Colors.red, size: 48),
+            SizedBox(height: 16),
+            Text(
+              errorMessage!,
+              style: TextStyle(color: Colors.red, fontSize: 18),
+            ),
+            SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: _fetchAdminData,
+              child: Text('Retry'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Color(0xFF0e99c9),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
     }
 
     return SingleChildScrollView(
-      padding: EdgeInsets.all(16),
+      padding: EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildGreeting(),
-          SizedBox(height: 20),
+          SizedBox(height: 24),
           _buildStatsGrid(),
-          SizedBox(height: 30),
+          SizedBox(height: 32),
           _buildRecentProductsSection(),
         ],
       ),
@@ -108,54 +160,115 @@ class _AdminPageState extends State<AdminPage> {
   }
 
   Widget _buildGreeting() {
-    return Text(
-      "Welcome, $adminName",
-      style: TextStyle(
-        fontSize: 24,
-        fontWeight: FontWeight.bold,
-        color: Color(0xFF0e99c9),
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "Welcome back,",
+          style: TextStyle(
+            fontSize: 18,
+            color: Colors.grey[700],
+          ),
+        ),
+        SizedBox(height: 4),
+        Text(
+          adminName,
+          style: TextStyle(
+            fontSize: 28,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF0e99c9),
+          ),
+        ),
+        SizedBox(height: 8),
+        Divider(color: Colors.grey[800], thickness: 1),
+      ],
     );
   }
 
   Widget _buildStatsGrid() {
-    return ConstrainedBox(
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.4,
-      ),
-      child: GridView.count(
-        shrinkWrap: true,
-        physics: NeverScrollableScrollPhysics(),
-        crossAxisCount: 2,
-        crossAxisSpacing: 15,
-        mainAxisSpacing: 15,
-        childAspectRatio: 1.5,
-        children: [
-          _buildStatCard(
-            "Total Users",
-            Icons.people,
-            _buildUserCountStream(),
-            Colors.blue,
-          ),
-          _buildStatCard(
-            "Total Products",
-            Icons.shopping_bag,
-            _buildCollectionCountStream('products'),
-            Colors.green,
-          ),
-          _buildStatCard(
-            "Total Feedbacks",
-            Icons.feedback,
-            _buildCollectionCountStream('feedbacks'),
-            Colors.orange,
-          ),
-          _buildStatCard(
-            "Total FAQs",
-            Icons.question_answer,
-            _buildCollectionCountStream('faqs'),
-            Colors.purple,
-          ),
+    return GridView.count(
+      shrinkWrap: true,
+      physics: NeverScrollableScrollPhysics(),
+      crossAxisCount: 2,
+      crossAxisSpacing: 16,
+      mainAxisSpacing: 16,
+      childAspectRatio: 1.2,
+      children: [
+        _buildStatCard(
+          "Total Users",
+          Icons.people_alt_rounded,
+          _buildUserCountStream(),
+          [Color(0xFF0e99c9), Color(0xFF3bb3e8)],
+        ),
+        _buildStatCard(
+          "Total Products",
+          Icons.shopping_bag_rounded,
+          _buildCollectionCountStream('products'),
+          [Color(0xFF4CAF50), Color(0xFF8BC34A)],
+        ),
+        _buildStatCard(
+          "Total Feedbacks",
+          Icons.feedback_rounded,
+          _buildCollectionCountStream('feedbacks'),
+          [Color(0xFFFF9800), Color(0xFFFFC107)],
+        ),
+        _buildStatCard(
+          "Total FAQs",
+          Icons.question_answer_rounded,
+          _buildCollectionCountStream('faqs'),
+          [Color(0xFF9C27B0), Color(0xFFE91E63)],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatCard(String title, IconData icon, Widget valueWidget, List<Color> gradientColors) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: gradientColors,
+        ),
+        boxShadow: [
+          BoxShadow(
+              color: gradientColors[0].withOpacity(0.3),
+              blurRadius: 8,
+              offset: Offset(0, 4))
         ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(icon, size: 32, color: Colors.white),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.9),
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                SizedBox(height: 4),
+                DefaultTextStyle(
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                  child: valueWidget,
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -164,9 +277,9 @@ class _AdminPageState extends State<AdminPage> {
     return StreamBuilder<QuerySnapshot>(
       stream: _firestore.collection('users').snapshots(),
       builder: (context, snapshot) {
-        if (snapshot.hasError) return Text("Error", style: TextStyle(color: Colors.red));
+        if (snapshot.hasError) return Text("Error", style: TextStyle(color: Colors.white));
 
-        if (!snapshot.hasData) return Text("0", style: TextStyle(fontSize: 24));
+        if (!snapshot.hasData) return Text("0");
 
         final users = snapshot.data!.docs;
         final userCount = users.where((doc) {
@@ -174,10 +287,7 @@ class _AdminPageState extends State<AdminPage> {
           return data['role'] == 'user';
         }).length;
 
-        return Text(
-          userCount.toString(),
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-        );
+        return Text(userCount.toString());
       },
     );
   }
@@ -186,35 +296,12 @@ class _AdminPageState extends State<AdminPage> {
     return StreamBuilder<QuerySnapshot>(
       stream: _firestore.collection(collection).snapshots(),
       builder: (context, snapshot) {
-        if (snapshot.hasError) return Text("Error", style: TextStyle(color: Colors.red));
+        if (snapshot.hasError) return Text("Error", style: TextStyle(color: Colors.white));
 
-        if (!snapshot.hasData) return Text("0", style: TextStyle(fontSize: 24));
+        if (!snapshot.hasData) return Text("0");
 
-        return Text(
-          snapshot.data!.docs.length.toString(),
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-        );
+        return Text(snapshot.data!.docs.length.toString());
       },
-    );
-  }
-
-  Widget _buildStatCard(String title, IconData icon, Widget valueWidget, Color color) {
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 40, color: color),
-            SizedBox(height: 10),
-            Text(title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
-            SizedBox(height: 5),
-            valueWidget,
-          ],
-        ),
-      ),
     );
   }
 
@@ -225,95 +312,157 @@ class _AdminPageState extends State<AdminPage> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text("Recent Products", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            Text(
+              "Recent Products",
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey[800],
+              ),
+            ),
             TextButton(
               onPressed: () => Navigator.pushNamed(context, '/ProductManagement'),
-              child: Text("View All"),
+              child: Text(
+                "View All",
+                style: TextStyle(
+                  color: Color(0xFF0e99c9),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              style: TextButton.styleFrom(
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
             ),
           ],
         ),
-        SizedBox(height: 10),
+        SizedBox(height: 12),
         _buildRecentItemsTable('products', ['name', 'price', 'stock']),
       ],
     );
   }
 
   Widget _buildRecentItemsTable(String collection, List<String> columns) {
-    return StreamBuilder<QuerySnapshot>(
-      stream: _firestore.collection(collection)
-          .orderBy('createdAt', descending: true)
-          .limit(5)
-          .snapshots(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());
-        }
+    return Container(
+      width: double.infinity, // Makes container take full width
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black12,
+            blurRadius: 10,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: StreamBuilder<QuerySnapshot>(
+          stream: _firestore.collection(collection)
+              .orderBy('createdAt', descending: true)
+              .limit(5)
+              .snapshots(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Container(
+                height: 200,
+                child: Center(
+                  child: CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF0e99c9)),
+                  ),
+                ),
+              );
+            }
 
-        if (snapshot.hasError) {
-          return Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Text("Error loading $collection", style: TextStyle(color: Colors.red)),
-            ),
-          );
-        }
+            if (snapshot.hasError) {
+              return Padding(
+                padding: const EdgeInsets.all(16),
+                child: Center(
+                  child: Text(
+                    "Error loading $collection",
+                    style: TextStyle(color: Colors.red),
+                  ),
+                ),
+              );
+            }
 
-        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-          return Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Text("No ${collection.replaceAll('messages', '')} found"),
-            ),
-          );
-        }
+            if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+              return Padding(
+                padding: const EdgeInsets.all(16),
+                child: Center(
+                  child: Text(
+                    "No ${collection.replaceAll('messages', '')} found",
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                ),
+              );
+            }
 
-        return Card(
-          elevation: 4,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Table(
-              columnWidths: {for (var i = 0; i < columns.length; i++) i: FlexColumnWidth(2)},
-              border: TableBorder.all(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(8)),
-              children: [
-                TableRow(
-                  decoration: BoxDecoration(
-                    color: Color(0xFF0e99c9).withOpacity(0.1),
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(8),
-                      topRight: Radius.circular(8),
+            return LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minWidth: constraints.maxWidth, // Ensures table takes full width
+                    ),
+                    child: DataTable(
+                      columnSpacing: 24,
+                      horizontalMargin: 16,
+                      headingRowHeight: 48,
+                      dataRowHeight: 56,
+                      headingRowColor: MaterialStateProperty.resolveWith<Color>(
+                            (states) => Color(0xFF0e99c9).withOpacity(0.1),
+                      ),
+                      columns: columns.map((col) => DataColumn(
+                        label: Container(
+                          width: _calculateColumnWidth(col, columns, constraints.maxWidth),
+                          child: Text(
+                            col.toUpperCase(),
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF0e99c9),
+                            ),
+                          ),
+                        ),
+                      )).toList(),
+                      rows: snapshot.data!.docs.map((doc) {
+                        final data = doc.data() as Map<String, dynamic>;
+                        return DataRow(
+                          cells: columns.map((col) => DataCell(
+                            Container(
+                              width: _calculateColumnWidth(col, columns, constraints.maxWidth),
+                              child: Text(
+                                data[col]?.toString() ?? 'N/A',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          )).toList(),
+                        );
+                      }).toList(),
                     ),
                   ),
-                  children: columns.map((col) => _buildTableHeaderCell(col)).toList(),
-                ),
-                ...snapshot.data!.docs.map((doc) {
-                  final data = doc.data() as Map<String, dynamic>;
-                  return TableRow(
-                    children: columns.map((col) => _buildTableCell(data[col]?.toString() ?? 'N/A')).toList(),
-                  );
-                }).toList(),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildTableHeaderCell(String text) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-      child: Text(
-        text.toUpperCase(),
-        style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF0e99c9)),
+                );
+              },
+            );
+          },
+        ),
       ),
     );
   }
 
-  Widget _buildTableCell(String text) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-      child: Text(text, maxLines: 2, overflow: TextOverflow.ellipsis),
-    );
+  double _calculateColumnWidth(String column, List<String> allColumns, double maxWidth) {
+    // Distribute width based on content
+    final baseWidth = maxWidth / allColumns.length;
+    switch (column) {
+      case 'name': return baseWidth * 1; // Give more width to name
+      case 'price': return baseWidth * 0.8;
+      case 'stock': return baseWidth * 0.7;
+      default: return baseWidth;
+    }
   }
 }
