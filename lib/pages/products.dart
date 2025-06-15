@@ -6,6 +6,9 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import '../services/authentication.dart';
+import 'package:flutter/foundation.dart';
+import 'package:image_picker_web/image_picker_web.dart';
+import 'package:universal_html/html.dart' as html;
 
 class ProductsPage extends StatefulWidget {
   const ProductsPage({super.key});
@@ -19,15 +22,40 @@ class _ProductsPageState extends State<ProductsPage> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseStorage _storage = FirebaseStorage.instance;
   final ImagePicker _picker = ImagePicker();
-  List<XFile>? _imageFiles = [];
-  TextEditingController _searchController = TextEditingController();
+  List<Uint8List> _imageBytes = []; // Changed to store bytes for both web and mobile
+  final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
-  String? _selectedCategory; // For category dropdown
+  String? _selectedCategory;
+  bool _isUploading = false;
 
   @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+
+  Future<List<Uint8List>> _pickImages() async {
+    if (kIsWeb) {
+      // For web - use getMultiImagesAsBytes() instead
+      final data = await ImagePickerWeb.getMultiImagesAsBytes();
+      if (data == null) return [];
+      return data;
+    } else {
+      // For mobile
+      final pickedFiles = await _picker.pickMultiImage(
+        maxWidth: 800,
+        maxHeight: 800,
+        imageQuality: 85,
+      );
+      if (pickedFiles == null) return [];
+      return await Future.wait(pickedFiles.map((file) => file.readAsBytes()));
+    }
+  }
+
+  Future<String> _uploadImage(Uint8List bytes, String fileName) async {
+    final ref = _storage.ref().child('product_images/$fileName');
+    await ref.putData(bytes);
+    return await ref.getDownloadURL();
   }
 
   @override
@@ -155,7 +183,6 @@ class _ProductsPageState extends State<ProductsPage> {
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                // Product Image
                                 if (images.isNotEmpty)
                                   Container(
                                     width: 80,
@@ -179,7 +206,6 @@ class _ProductsPageState extends State<ProductsPage> {
                                     child: const Icon(Icons.image, size: 40, color: Colors.grey),
                                   ),
                                 const SizedBox(width: 12),
-                                // Product Details
                                 Expanded(
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -232,7 +258,6 @@ class _ProductsPageState extends State<ProductsPage> {
                                     ],
                                   ),
                                 ),
-                                // Action Buttons
                                 Column(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
@@ -362,8 +387,9 @@ class _ProductsPageState extends State<ProductsPage> {
     final stockController = TextEditingController(text: '1');
     final descController = TextEditingController();
     bool isAvailable = true;
-    _imageFiles = [];
+    _imageBytes = [];
     _selectedCategory = null;
+    _isUploading = false;
 
     await showDialog(
       context: context,
@@ -438,26 +464,52 @@ class _ProductsPageState extends State<ProductsPage> {
                       const SizedBox(height: 10),
                       ElevatedButton(
                         onPressed: () async {
-                          final pickedFiles = await _picker.pickMultiImage(
-                            maxWidth: 800,
-                            maxHeight: 800,
-                            imageQuality: 85,
-                          );
-                          if (pickedFiles != null) {
-                            setState(() {
-                              _imageFiles = pickedFiles;
-                            });
+                          try {
+                            final bytes = await _pickImages();
+                            if (bytes.isNotEmpty) {
+                              setState(() {
+                                _imageBytes = bytes;
+                              });
+                            }
+                          } catch (e) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Error picking images: $e')),
+                            );
                           }
                         },
                         child: const Text('Upload Images'),
                       ),
-                      if (_imageFiles != null && _imageFiles!.isNotEmpty)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 8.0),
-                          child: Text(
-                            '${_imageFiles!.length} images selected',
-                            style: const TextStyle(color: Colors.green),
-                          ),
+                      if (_imageBytes.isNotEmpty)
+                        Column(
+                          children: [
+                            Text(
+                              '${_imageBytes.length} images selected',
+                              style: const TextStyle(color: Colors.green),
+                            ),
+                            SizedBox(
+                              height: 100,
+                              child: ListView.builder(
+                                scrollDirection: Axis.horizontal,
+                                itemCount: _imageBytes.length,
+                                itemBuilder: (context, index) {
+                                  return Padding(
+                                    padding: const EdgeInsets.all(4.0),
+                                    child: Image.memory(
+                                      _imageBytes[index],
+                                      width: 100,
+                                      height: 100,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      if (_isUploading)
+                        const Padding(
+                          padding: EdgeInsets.all(8.0),
+                          child: CircularProgressIndicator(),
                         ),
                     ],
                   ),
@@ -465,25 +517,24 @@ class _ProductsPageState extends State<ProductsPage> {
               ),
               actions: [
                 TextButton(
-                  onPressed: () => Navigator.pop(context),
+                  onPressed: _isUploading ? null : () => Navigator.pop(context),
                   child: const Text('Cancel'),
                 ),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF0e99c9),
                   ),
-                  onPressed: () async {
+                  onPressed: _isUploading ? null : () async {
                     if (formKey.currentState!.validate()) {
+                      setState(() => _isUploading = true);
+
                       try {
-                        // Upload images to Firebase Storage
                         List<String> imageUrls = [];
-                        if (_imageFiles != null && _imageFiles!.isNotEmpty) {
-                          for (var imageFile in _imageFiles!) {
-                            final file = File(imageFile.path);
-                            final fileName = DateTime.now().millisecondsSinceEpoch.toString();
-                            final ref = _storage.ref().child('product_images/$fileName');
-                            await ref.putFile(file);
-                            final url = await ref.getDownloadURL();
+
+                        if (_imageBytes.isNotEmpty) {
+                          for (var i = 0; i < _imageBytes.length; i++) {
+                            final fileName = '${DateTime.now().millisecondsSinceEpoch}_$i.jpg';
+                            final url = await _uploadImage(_imageBytes[i], fileName);
                             imageUrls.add(url);
                           }
                         }
@@ -506,6 +557,7 @@ class _ProductsPageState extends State<ProductsPage> {
                           const SnackBar(content: Text('Product added successfully!')),
                         );
                       } catch (e) {
+                        setState(() => _isUploading = false);
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(content: Text('Error adding product: $e')),
                         );
@@ -529,8 +581,10 @@ class _ProductsPageState extends State<ProductsPage> {
     final stockController = TextEditingController(text: data['stock']?.toString());
     final descController = TextEditingController(text: data['description']);
     bool isAvailable = data['isAvailable'] ?? true;
-    _imageFiles = [];
+    _imageBytes = [];
+    List<String> _existingImages = List.from(data['images'] ?? []);
     _selectedCategory = data['category'];
+    _isUploading = false;
 
     await showDialog(
       context: context,
@@ -602,29 +656,70 @@ class _ProductsPageState extends State<ProductsPage> {
                           const Text('Make product available'),
                         ],
                       ),
+                      if (_existingImages.isNotEmpty) ...[
+                        const Text('Current Images:'),
+                        Wrap(
+                          children: _existingImages.map((url) => Stack(
+                            children: [
+                              Image.network(url, width: 80, height: 80),
+                              Positioned(
+                                right: 0,
+                                child: IconButton(
+                                  icon: const Icon(Icons.delete, color: Colors.red),
+                                  onPressed: () {
+                                    setState(() {
+                                      _existingImages.remove(url);
+                                    });
+                                  },
+                                ),
+                              ),
+                            ],
+                          )).toList(),
+                        ),
+                      ],
                       const SizedBox(height: 10),
                       ElevatedButton(
                         onPressed: () async {
-                          final pickedFiles = await _picker.pickMultiImage(
-                            maxWidth: 800,
-                            maxHeight: 800,
-                            imageQuality: 85,
-                          );
-                          if (pickedFiles != null) {
-                            setState(() {
-                              _imageFiles = pickedFiles;
-                            });
+                          try {
+                            final bytes = await _pickImages();
+                            if (bytes.isNotEmpty) {
+                              setState(() {
+                                _imageBytes = bytes;
+                              });
+                            }
+                          } catch (e) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Error picking images: $e')),
+                            );
                           }
                         },
-                        child: const Text('Update Images'),
+                        child: const Text('Add More Images'),
                       ),
-                      if (_imageFiles != null && _imageFiles!.isNotEmpty)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 8.0),
-                          child: Text(
-                            '${_imageFiles!.length} new images selected',
-                            style: const TextStyle(color: Colors.green),
+                      if (_imageBytes.isNotEmpty) ...[
+                        const Text('New Images:'),
+                        SizedBox(
+                          height: 100,
+                          child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: _imageBytes.length,
+                            itemBuilder: (context, index) {
+                              return Padding(
+                                padding: const EdgeInsets.all(4.0),
+                                child: Image.memory(
+                                  _imageBytes[index],
+                                  width: 100,
+                                  height: 100,
+                                  fit: BoxFit.cover,
+                                ),
+                              );
+                            },
                           ),
+                        ),
+                      ],
+                      if (_isUploading)
+                        const Padding(
+                          padding: EdgeInsets.all(8.0),
+                          child: CircularProgressIndicator(),
                         ),
                     ],
                   ),
@@ -632,28 +727,25 @@ class _ProductsPageState extends State<ProductsPage> {
               ),
               actions: [
                 TextButton(
-                  onPressed: () => Navigator.pop(context),
+                  onPressed: _isUploading ? null : () => Navigator.pop(context),
                   child: const Text('Cancel'),
                 ),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF0e99c9),
                   ),
-                  onPressed: () async {
+                  onPressed: _isUploading ? null : () async {
                     if (formKey.currentState!.validate()) {
-                      try {
-                        // Get existing images
-                        List<String> imageUrls = List<String>.from(data['images'] ?? []);
+                      setState(() => _isUploading = true);
 
-                        // Upload new images if any
-                        if (_imageFiles != null && _imageFiles!.isNotEmpty) {
-                          for (var imageFile in _imageFiles!) {
-                            final file = File(imageFile.path);
-                            final fileName = DateTime.now().millisecondsSinceEpoch.toString();
-                            final ref = _storage.ref().child('product_images/$fileName');
-                            await ref.putFile(file);
-                            final url = await ref.getDownloadURL();
-                            imageUrls.add(url);
+                      try {
+                        List<String> allImageUrls = List.from(_existingImages);
+
+                        if (_imageBytes.isNotEmpty) {
+                          for (var i = 0; i < _imageBytes.length; i++) {
+                            final fileName = '${DateTime.now().millisecondsSinceEpoch}_$i.jpg';
+                            final url = await _uploadImage(_imageBytes[i], fileName);
+                            allImageUrls.add(url);
                           }
                         }
 
@@ -664,7 +756,7 @@ class _ProductsPageState extends State<ProductsPage> {
                           'category': _selectedCategory,
                           'isAvailable': isAvailable,
                           'description': descController.text,
-                          'images': imageUrls,
+                          'images': allImageUrls,
                           'updatedAt': FieldValue.serverTimestamp(),
                         });
 
@@ -674,6 +766,7 @@ class _ProductsPageState extends State<ProductsPage> {
                           const SnackBar(content: Text('Product updated successfully!')),
                         );
                       } catch (e) {
+                        setState(() => _isUploading = false);
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(content: Text('Error updating product: $e')),
                         );

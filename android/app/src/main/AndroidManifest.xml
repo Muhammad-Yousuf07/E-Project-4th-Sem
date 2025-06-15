@@ -1,8 +1,17 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.CAMERA" />
+    <!-- For Android -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.CAMERA"/>
+
+    // For iOS, add these to Info.plist
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>Need photos permission to upload product images</string>
+    <key>NSCameraUsageDescription</key>
+    <string>Need camera permission to take pictures for products</string>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>Need microphone permission for video recording</string>
 =
     <application
         android:label="authentication"
