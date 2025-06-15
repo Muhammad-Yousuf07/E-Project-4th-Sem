@@ -11,6 +11,7 @@ import 'package:authentication/pages/forget_password.dart';
 import 'package:authentication/pages/home_page.dart';
 import 'package:authentication/pages/launching_page.dart';
 import 'package:authentication/pages/login_page.dart';
+import 'package:authentication/pages/manageusers.dart';
 import 'package:authentication/pages/products.dart';
 import 'package:authentication/pages/signup_page.dart';
 import 'package:authentication/pages/supportAdmin.dart';
@@ -64,6 +65,7 @@ class MyApp extends StatelessWidget {
         PageRoutes.feedbackroute : (context) => FeedbackManagementPage(),
         PageRoutes.faqsadminroute : (context) => FAQAdminPage(),
         PageRoutes.supportadminroute : (context) => SupportAdminPage(),
+        PageRoutes.useradminroute : (context) => UsersPage(),
 
       },
 

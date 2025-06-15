@@ -29,11 +29,27 @@ environment:
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
 dependencies:
-  permission_handler: ^10.4.0
-  firebase_storage: 12.4.6
   flutter:
     sdk: flutter
-  image_picker: ^1.0.4  # Latest stable version
+
+  # Storage (updated to match your version)
+  firebase_storage: ^12.4.6
+
+  # Image Picking
+  image_picker: ^1.0.4
+  image_picker_for_web: ^3.0.0  # Web support
+
+  # Permissions (updated to your version)
+  permission_handler: ^10.4.0
+
+  # Cross-platform support
+  universal_io: ^2.2.0
+
+  # Utilities
+  uuid: ^3.0.7          # For unique filenames
+  fluttertoast: ^8.2.2  # User notifications
+
+
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.

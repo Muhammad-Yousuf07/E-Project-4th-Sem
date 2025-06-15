@@ -26,7 +26,7 @@ class AdminSideDrawer extends StatelessWidget {
             drawerItem(
               icon: Icons.verified_user_rounded,
               text: "Manage Users",
-              onTap: () => Navigator.pushReplacementNamed(context, "/"),
+              onTap: () => Navigator.pushReplacementNamed(context, "/UserManagement"),
             ),
 
             drawerItem(

@@ -6,6 +6,7 @@ import 'package:authentication/pages/faq_page.dart';
 import 'package:authentication/pages/feedback.dart';
 import 'package:authentication/pages/forget_password.dart';
 import 'package:authentication/pages/launching_page.dart';
+import 'package:authentication/pages/manageusers.dart';
 import 'package:authentication/pages/signup_page.dart';
 import 'package:authentication/pages/feedback_page.dart';
 import 'package:authentication/pages/edit_user_profile.dart';
@@ -39,5 +40,6 @@ class PageRoutes{
   static const String feedbackroute = FeedbackManagementPage.routeName;
   static const String faqsadminroute = FAQAdminPage.routeName;
   static const String supportadminroute = SupportAdminPage.routeName;
+  static const String useradminroute = UsersPage.routeName;
 
 }
