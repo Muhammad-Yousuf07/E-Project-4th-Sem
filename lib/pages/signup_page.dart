@@ -33,7 +33,7 @@ class _SignupPageState extends State<SignupPage> {
       body: SingleChildScrollView(
         child: Container(
           color: Color(0xFFeeeeee),
-          padding: EdgeInsets.all(20),
+          padding: EdgeInsets.all(14),
           child: SafeArea(
             child: Center(
               child: Form(
@@ -43,7 +43,7 @@ class _SignupPageState extends State<SignupPage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Padding(
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(10),
                       child: Column(
                         children: [
                           Text("Welcome Buddy!",
@@ -111,7 +111,7 @@ class _SignupPageState extends State<SignupPage> {
                             child: TextFormField(
                               controller: signupPnoneNumberController,
                               keyboardType: TextInputType.phone,
-                              validator: validatePnoneNumber,
+                              validator: validatePhoneNumber,
                               onSaved: (value) {
                                 setState(() {
                                   phone = value;

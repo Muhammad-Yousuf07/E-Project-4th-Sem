@@ -17,6 +17,7 @@ String? validateName(String? value) {
 }
 
 
+
 String? validateFullName(String? value) {
   if (value == null || value.trim().isEmpty) {
     return "Name can't be empty";
@@ -37,6 +38,7 @@ String? validateFullName(String? value) {
 }
 
 
+
 String? validateEmail(String? value) {
   Pattern pattern = r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$';
   RegExp regExp = RegExp(pattern.toString());
@@ -47,6 +49,7 @@ String? validateEmail(String? value) {
     return null;
   }
 }
+
 
 
 String? validatePassword(String? value) {
@@ -70,12 +73,43 @@ String? validatePassword(String? value) {
 }
 
 
+String? validatePreviousPassword(String? value, String actualPreviousPassword) {
+  if (value == null || value.isEmpty) {
+    return "Password can't be empty";
+  }
+
+  if (value != actualPreviousPassword) {
+    return "Previous password is incorrect";
+  }
+
+  return null;
+}
+
+
+
+String? validateConfirmPassword(String? value, String newPassword) {
+  if (value == null || value.isEmpty) {
+    return "Password can't be empty";
+  }
+
+  if (value != newPassword) {
+    return "Passwords do not match";
+  }
+
+  return null;
+}
+
+
+
+
 String? validateMessage(String? value) {
   if (value == null || value.isEmpty) {
     return 'Message can’t be empty';
   }
   return null;
 }
+
+
 
 
 String? validateAge(String? value,) {
@@ -94,7 +128,9 @@ String? validateAge(String? value,) {
 }
 
 
-String? validatePnoneNumber(String? value) {
+
+
+String? validatePhoneNumber(String? value) {
   if (value!.isEmpty) {
     return "number is required";
   }
@@ -107,6 +143,8 @@ String? validatePnoneNumber(String? value) {
   }
   return null;
 }
+
+
 
 
 String? validateAddress(String? value) {

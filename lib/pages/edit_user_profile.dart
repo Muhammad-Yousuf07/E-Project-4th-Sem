@@ -23,9 +23,13 @@ class _EditProfilePageState extends State<EditProfilePage> {
   final _newPasswordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   bool _loading = false;
-  String? _errorText;
 
   String? _userEmail;
+
+  // For password obscure toggle
+  bool _isCurrentPasswordObscure = true;
+  bool _isNewPasswordObscure = true;
+  bool _isConfirmPasswordObscure = true;
 
   @override
   void initState() {
@@ -50,15 +54,26 @@ class _EditProfilePageState extends State<EditProfilePage> {
     }
   }
 
-  InputDecoration _inputDecoration(String label, IconData icon) {
+  // Custom InputDecoration matching your style
+  InputDecoration _customDecoration(String hintText, IconData prefixIcon, {Widget? suffixIcon}) {
     return InputDecoration(
-      labelText: label,
-      prefixIcon: Icon(icon),
+      hintText: hintText,
+      prefixIcon: Icon(prefixIcon, color: Color(0xFF0e99c9)),
+      suffixIcon: suffixIcon,
+      suffixIconColor: Color(0xFF0e99c9),
       isDense: true,
-      contentPadding: EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-      border: OutlineInputBorder(borderRadius: BorderRadius.zero),
+      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.zero,
+        borderSide: BorderSide(color: Colors.transparent, width: 1.0),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.zero,
+        borderSide: BorderSide(color: Colors.transparent),
+      ),
       focusedBorder: OutlineInputBorder(
-        borderSide: BorderSide(color: Colors.red.shade600, width: 1.2),
+        borderRadius: BorderRadius.zero,
+        borderSide: BorderSide(color: Color(0xFF057ba4), width: 1),
       ),
     );
   }
@@ -68,33 +83,39 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
     setState(() {
       _loading = true;
-      _errorText = null;
     });
 
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) throw Exception("User not found.");
 
-      if (_newPasswordController.text.isNotEmpty || _confirmPasswordController.text.isNotEmpty) {
-        if (_currentPasswordController.text.trim().isEmpty) {
+      final currentPass = _currentPasswordController.text.trim();
+      final newPass = _newPasswordController.text.trim();
+      final confirmPass = _confirmPasswordController.text.trim();
+
+      if (newPass.isNotEmpty || confirmPass.isNotEmpty || currentPass.isNotEmpty) {
+        if (currentPass.isEmpty) {
           throw FirebaseAuthException(
             code: "requires-recent-login",
-            message: "Enter current password to change password.",
+            message: "Enter your current password to change it.",
           );
         }
 
         final cred = EmailAuthProvider.credential(
           email: user.email!,
-          password: _currentPasswordController.text.trim(),
+          password: currentPass,
         );
 
         await user.reauthenticateWithCredential(cred);
 
-        if (_newPasswordController.text != _confirmPasswordController.text) {
-          throw FirebaseAuthException(code: 'password-mismatch', message: 'Passwords do not match');
+        if (newPass != confirmPass) {
+          throw FirebaseAuthException(
+            code: 'password-mismatch',
+            message: 'New password and confirm password do not match.',
+          );
         }
 
-        await user.updatePassword(_newPasswordController.text.trim());
+        await user.updatePassword(newPass);
       }
 
       await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
@@ -104,31 +125,34 @@ class _EditProfilePageState extends State<EditProfilePage> {
         'uid': user.uid,
       }, SetOptions(merge: true));
 
-
       if (user != null) {
         final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
         final role = doc.data()?['role'];
         if (role == 'admin') {
           Navigator.pushReplacementNamed(context, '/AdminPage');
-        } else{
+        } else {
           Navigator.pushReplacementNamed(context, '/HomePage');
         }
       } else {
         Navigator.pushReplacementNamed(context, '/LoginPage');
       }
+
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Profile updated successfully')),
       );
-
-
-
-
-
     } on FirebaseAuthException catch (e) {
-      setState(() => _errorText = e.message);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.message ?? 'An error occurred')),
+        );
+      }
     } catch (e) {
-      setState(() => _errorText = "Unexpected error: $e");
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Unexpected error: $e")),
+        );
+      }
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -143,7 +167,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
           leading: IconButton(
             icon: Icon(Icons.arrow_back, color: Colors.white),
             onPressed: () async {
-              if (_loading) return; // Prevent navigation during save
+              if (_loading) return;
 
               final user = FirebaseAuth.instance.currentUser;
               if (user != null) {
@@ -160,102 +184,198 @@ class _EditProfilePageState extends State<EditProfilePage> {
               }
             },
           ),
-
           backgroundColor: Color(0xFF0e99c9),
           iconTheme: IconThemeData(color: Colors.white, weight: 20, size: 26),
           centerTitle: true,
         ),
-        body: Padding(
-          padding: EdgeInsets.all(16),
-          child: Form(
-            key: _formKey,
-            child: ListView(
-              children: [
-                if (_errorText != null)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: Text(_errorText!, style: TextStyle(color: Colors.red)),
-                  ),
-                Text("Change General Details", style: TextStyle(fontWeight: FontWeight.bold)),
-                SizedBox(height: 12),
+        body: Container(
+          color: Color(0xFFeeeeee),
+          child: Padding(
+            padding: EdgeInsets.all(16),
+            child: Form(
+              key: _formKey,
+              child: ListView(
+                children: [
+                  SizedBox(height: 12),
 
-                TextFormField(
-                  controller: _fullNameController,
-                  decoration: _inputDecoration("Full Name", Icons.person_outline),
-                  validator: validateFullName,
-
-                ),
-                SizedBox(height: 16),
-
-                if (_userEmail != null)
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      TextFormField(
-                        initialValue: _userEmail,
-                        decoration: _inputDecoration("Email (not editable)", Icons.email_outlined).copyWith(
-                          filled: true,
-                          fillColor: Colors.grey.shade200,
+                  if (_userEmail != null)
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        TextFormField(
+                          initialValue: _userEmail,
+                          decoration: _customDecoration("Email (not editable)", Icons.email_outlined).copyWith(
+                            filled: true,
+                            fillColor: Colors.grey.shade200,
+                          ),
+                          readOnly: true,
+                          enabled: false,
                         ),
-                        readOnly: true,
-                        enabled: false,
-                      ),
-                      SizedBox(height: 6),
-                      Text(
-                        "⚠️ Your email cannot be edited!",
-                        style: TextStyle(color: Colors.red.shade700, fontSize: 13),
-                      ),
-                      SizedBox(height: 16),
-                    ],
+                        SizedBox(height: 6),
+                        Text(
+                          "⚠️ Your email cannot be edited!",
+                          style: TextStyle(color: Colors.red.shade700, fontSize: 13),
+                        ),
+                        SizedBox(height: 16),
+                      ],
+                    ),
+
+                  SizedBox(height: 16),
+                  Text("Change Details", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18,)),
+                  SizedBox(height: 12),
+
+                  Material(
+                    elevation: 20,
+                    shadowColor: Colors.black38,
+                    child: TextFormField(
+                      controller: _fullNameController,
+                      decoration: _customDecoration("Full Name", Icons.person_outline),
+                      validator: validateFullName,
+                    ),
                   ),
 
-                TextFormField(
-                  controller: _addressController,
-                  decoration: _inputDecoration("Shipping Address", Icons.location_on_outlined),
-                  validator: validateAddress,
-                ),
-                SizedBox(height: 16),
-                TextFormField(
-                  controller: _contactController,
-                  decoration: _inputDecoration("Contact Number", Icons.phone_outlined),
-                  validator: validatePnoneNumber,
-                ),
-                SizedBox(height: 32),
-                Text("Change Password", style: TextStyle(fontWeight: FontWeight.bold)),
-                SizedBox(height: 12),
-                TextFormField(
-                  controller: _currentPasswordController,
-                  obscureText: true,
-                  decoration: _inputDecoration("Current Password", Icons.lock_outline),
-                ),
-                SizedBox(height: 16),
-                TextFormField(
-                  controller: _newPasswordController,
-                  obscureText: true,
-                  decoration: _inputDecoration("New Password", Icons.lock_open),
-                ),
-                SizedBox(height: 16),
-                TextFormField(
-                  controller: _confirmPasswordController,
-                  obscureText: true,
-                  decoration: _inputDecoration("Confirm New Password", Icons.lock),
-                ),
-                SizedBox(height: 24),
-                ElevatedButton(
-                  onPressed: _loading ? null : _updateProfile,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFF0e99c9),
-                    padding: EdgeInsets.symmetric(vertical: 12, horizontal: 24),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                  SizedBox(height: 16),
+
+                  Material(
+                    elevation: 20,
+                    shadowColor: Colors.black38,
+                    child: TextFormField(
+                      controller: _addressController,
+                      decoration: _customDecoration("Shipping Address", Icons.location_on_outlined),
+                      validator: validateAddress,
+                    ),
                   ),
-                  child: _loading
-                      ? CircularProgressIndicator(color: Colors.white)
-                      : Text(
-                    "Save Changes",
-                    style: TextStyle(color: Colors.white, fontSize: 16, letterSpacing: 3),
+
+                  SizedBox(height: 16),
+
+                  Material(
+                    elevation: 20,
+                    shadowColor: Colors.black38,
+                    child: TextFormField(
+                      controller: _contactController,
+                      decoration: _customDecoration("Contact Number", Icons.phone_outlined),
+                      validator: validatePhoneNumber,
+                    ),
                   ),
-                ),
-              ],
+
+                  SizedBox(height: 32),
+                  Text("Change Password", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18,)),
+                  SizedBox(height: 12),
+
+                  Material(
+                    elevation: 20,
+                    shadowColor: Colors.black38,
+                    child: TextFormField(
+                      controller: _currentPasswordController,
+                      obscureText: _isCurrentPasswordObscure,
+                      decoration: _customDecoration(
+                        "Current Password",
+                        Icons.lock_outline,
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _isCurrentPasswordObscure
+                                ? Icons.visibility_outlined
+                                : Icons.visibility_off_outlined,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _isCurrentPasswordObscure = !_isCurrentPasswordObscure;
+                            });
+                          },
+                        ),
+                      ),
+                      validator: (val) {
+                        if (val == null || val.isEmpty) {
+                          return "Current password can't be empty";
+                        }
+                        return null; // Firebase handles actual reauth
+                      },
+                    ),
+                  ),
+
+                  SizedBox(height: 16),
+
+                  Material(
+                    elevation: 20,
+                    shadowColor: Colors.black38,
+                    child: TextFormField(
+                      controller: _newPasswordController,
+                      obscureText: _isNewPasswordObscure,
+                      decoration: _customDecoration(
+                        "New Password",
+                        Icons.lock_open,
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _isNewPasswordObscure
+                                ? Icons.visibility_outlined
+                                : Icons.visibility_off_outlined,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _isNewPasswordObscure = !_isNewPasswordObscure;
+                            });
+                          },
+                        ),
+                      ),
+                      validator: validatePassword,
+                    ),
+                  ),
+
+                  SizedBox(height: 16),
+
+                  Material(
+                    elevation: 20,
+                    shadowColor: Colors.black38,
+                    child: TextFormField(
+                      controller: _confirmPasswordController,
+                      obscureText: _isConfirmPasswordObscure,
+                      decoration: _customDecoration(
+                        "Confirm New Password",
+                        Icons.lock,
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _isConfirmPasswordObscure
+                                ? Icons.visibility_outlined
+                                : Icons.visibility_off_outlined,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _isConfirmPasswordObscure = !_isConfirmPasswordObscure;
+                            });
+                          },
+                        ),
+                      ),
+                      validator: (val) => validateConfirmPassword(val, _newPasswordController.text),
+                    ),
+                  ),
+
+                  SizedBox(height: 24),
+
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width,
+                    height: 40,
+                    child: ElevatedButton(
+                      onPressed: _loading ? null : _updateProfile,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color(0xFF0e99c9),
+                        padding: EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                      ),
+                      child: _loading
+                          ? CircularProgressIndicator(color: Colors.white)
+                          : Text(
+                        "SAVE CHANGES",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          letterSpacing: 5,
+                        ),
+                      ),
+                    ),
+                  )
+
+                ],
+              ),
             ),
           ),
         ),
