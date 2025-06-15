@@ -14,6 +14,8 @@ import 'package:authentication/pages/login_page.dart';
 import 'package:authentication/pages/products.dart';
 import 'package:authentication/pages/signup_page.dart';
 import 'package:authentication/pages/supportAdmin.dart';
+import 'package:authentication/pages/user_product.dart';
+import 'package:authentication/pages/user_product_details.dart';
 import 'package:authentication/routes/routes.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -54,16 +56,32 @@ class MyApp extends StatelessWidget {
         PageRoutes.userCustomerSupport : (context) => SupportHomePage(),
         PageRoutes.userFeedbackForm : (context) => FeedbackFormPage(),
         PageRoutes.userEditProfile : (context) => EditProfilePage(),
+        PageRoutes.userProducts : (context) => UserProductsPage(),
 
         // admin
         PageRoutes.adminPanel : (context) => AdminPage(),
         PageRoutes.productRoute : (context) => ProductsPage(),
         PageRoutes.feedbackroute : (context) => FeedbackManagementPage(),
         PageRoutes.faqsadminroute : (context) => FAQAdminPage(),
-        PageRoutes.supportadminroute : (context) => SupportAdminPage()
+        PageRoutes.supportadminroute : (context) => SupportAdminPage(),
 
       },
+
+      // argument routes is trh aaty
+      onGenerateRoute: argumentRoutes,
+
     );
   }
+
+  Route<dynamic>? argumentRoutes(RouteSettings settings) {
+    if (settings.name == PageRoutes.userProductDetails) {
+      final productId = settings.arguments as String;
+      return MaterialPageRoute(
+        builder: (context) => ProductDetailPage(productId: productId),
+      );
+    }
+    return null;
+  }
+
 }
 

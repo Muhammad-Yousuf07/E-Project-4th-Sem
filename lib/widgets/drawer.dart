@@ -24,6 +24,12 @@ class SideDrawer extends StatelessWidget {
             ),
 
             drawerItem(
+              icon: Icons.shopping_bag_outlined,
+              text: "Products",
+              onTap: () => Navigator.pushReplacementNamed(context, "/ProductPage"),
+            ),
+
+            drawerItem(
               icon: Icons.support_agent_outlined,
               text: "Customer Support",
               onTap: () => Navigator.pushReplacementNamed(context, "/CustomerSupportPage"),
