@@ -2,6 +2,7 @@ import 'package:authentication/widgets/admin_drawer.dart';
 import 'package:authentication/widgets/auth_guard.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 import '../services/authentication.dart';
 
@@ -15,6 +16,7 @@ class UsersPage extends StatefulWidget {
 
 class _UsersPageState extends State<UsersPage> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
   TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
 
@@ -219,7 +221,7 @@ class _UsersPageState extends State<UsersPage> {
                                     if (!isAdmin) // Prevent deleting admin accounts
                                       IconButton(
                                         icon: const Icon(Icons.delete, color: Colors.red),
-                                        onPressed: () => _deleteUser(user.id),
+                                        onPressed: () => _deleteUser(user.id, data['email']),
                                       ),
                                   ],
                                 ),
@@ -332,7 +334,11 @@ class _UsersPageState extends State<UsersPage> {
     final emailController = TextEditingController();
     final phoneController = TextEditingController();
     final addressController = TextEditingController();
+    final passwordController = TextEditingController();
+    final confirmPasswordController = TextEditingController();
     String? selectedRole = 'user';
+    bool _obscurePassword = true;
+    bool _obscureConfirmPassword = true;
 
     await showDialog(
       context: context,
@@ -356,7 +362,13 @@ class _UsersPageState extends State<UsersPage> {
                         controller: emailController,
                         decoration: const InputDecoration(labelText: 'Email*'),
                         keyboardType: TextInputType.emailAddress,
-                        validator: (value) => value?.isEmpty ?? true ? 'Required' : null,
+                        validator: (value) {
+                          if (value?.isEmpty ?? true) return 'Required';
+                          if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value!)) {
+                            return 'Enter a valid email';
+                          }
+                          return null;
+                        },
                       ),
                       TextFormField(
                         controller: phoneController,
@@ -367,6 +379,51 @@ class _UsersPageState extends State<UsersPage> {
                         controller: addressController,
                         decoration: const InputDecoration(labelText: 'Address'),
                         maxLines: 2,
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: passwordController,
+                        decoration: InputDecoration(
+                          labelText: 'Password*',
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _obscurePassword = !_obscurePassword;
+                              });
+                            },
+                          ),
+                        ),
+                        obscureText: _obscurePassword,
+                        validator: (value) {
+                          if (value?.isEmpty ?? true) return 'Required';
+                          if (value!.length < 6) return 'Minimum 6 characters';
+                          return null;
+                        },
+                      ),
+                      TextFormField(
+                        controller: confirmPasswordController,
+                        decoration: InputDecoration(
+                          labelText: 'Confirm Password*',
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _obscureConfirmPassword ? Icons.visibility_off : Icons.visibility,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _obscureConfirmPassword = !_obscureConfirmPassword;
+                              });
+                            },
+                          ),
+                        ),
+                        obscureText: _obscureConfirmPassword,
+                        validator: (value) {
+                          if (value?.isEmpty ?? true) return 'Required';
+                          if (value != passwordController.text) return 'Passwords don\'t match';
+                          return null;
+                        },
                       ),
                       const SizedBox(height: 16),
                       DropdownButtonFormField<String>(
@@ -403,9 +460,22 @@ class _UsersPageState extends State<UsersPage> {
                   onPressed: () async {
                     if (formKey.currentState!.validate()) {
                       try {
-                        // In a real app, you would create the user with Firebase Auth first
-                        // then add the user data to Firestore
-                        await _firestore.collection('users').add({
+                        // Show loading indicator
+                        showDialog(
+                          context: context,
+                          barrierDismissible: false,
+                          builder: (context) => const Center(child: CircularProgressIndicator()),
+                        );
+
+                        // 1. Create user in Firebase Authentication
+                        final UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+                          email: emailController.text,
+                          password: passwordController.text,
+                        );
+
+                        // 2. Add user data to Firestore
+                        await _firestore.collection('users').doc(userCredential.user?.uid).set({
+                          'uid': userCredential.user?.uid,
                           'name': nameController.text,
                           'email': emailController.text,
                           'phone': phoneController.text.isNotEmpty ? phoneController.text : null,
@@ -415,19 +485,46 @@ class _UsersPageState extends State<UsersPage> {
                           'updatedAt': FieldValue.serverTimestamp(),
                         });
 
+                        // Close loading indicator
                         if (!mounted) return;
-                        Navigator.pop(context);
+                        Navigator.pop(context); // Close loading
+                        Navigator.pop(context); // Close dialog
+
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('User added successfully!')),
+                          const SnackBar(content: Text('User created successfully!')),
+                        );
+                      } on FirebaseAuthException catch (e) {
+                        // Close loading indicator
+                        Navigator.pop(context);
+
+                        String errorMessage;
+                        switch (e.code) {
+                          case 'email-already-in-use':
+                            errorMessage = 'Email already in use';
+                            break;
+                          case 'invalid-email':
+                            errorMessage = 'Invalid email address';
+                            break;
+                          case 'weak-password':
+                            errorMessage = 'Password is too weak';
+                            break;
+                          default:
+                            errorMessage = 'Error creating user: ${e.message}';
+                        }
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(errorMessage)),
                         );
                       } catch (e) {
+                        // Close loading indicator
+                        Navigator.pop(context);
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Error adding user: $e')),
+                          SnackBar(content: Text('Error creating user: $e')),
                         );
                       }
                     }
                   },
-                  child: const Text('Save', style: TextStyle(color: Colors.white)),
+                  child: const Text('Create User', style: TextStyle(color: Colors.white)),
                 ),
               ],
             );
@@ -467,7 +564,13 @@ class _UsersPageState extends State<UsersPage> {
                         controller: emailController,
                         decoration: const InputDecoration(labelText: 'Email*'),
                         keyboardType: TextInputType.emailAddress,
-                        validator: (value) => value?.isEmpty ?? true ? 'Required' : null,
+                        validator: (value) {
+                          if (value?.isEmpty ?? true) return 'Required';
+                          if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value!)) {
+                            return 'Enter a valid email';
+                          }
+                          return null;
+                        },
                       ),
                       TextFormField(
                         controller: phoneController,
@@ -514,6 +617,14 @@ class _UsersPageState extends State<UsersPage> {
                   onPressed: () async {
                     if (formKey.currentState!.validate()) {
                       try {
+                        // Show loading indicator
+                        showDialog(
+                          context: context,
+                          barrierDismissible: false,
+                          builder: (context) => const Center(child: CircularProgressIndicator()),
+                        );
+
+                        // Update user in Firestore
                         await _firestore.collection('users').doc(userId).update({
                           'name': nameController.text,
                           'email': emailController.text,
@@ -523,12 +634,17 @@ class _UsersPageState extends State<UsersPage> {
                           'updatedAt': FieldValue.serverTimestamp(),
                         });
 
+                        // Close loading indicator
                         if (!mounted) return;
-                        Navigator.pop(context);
+                        Navigator.pop(context); // Close loading
+                        Navigator.pop(context); // Close dialog
+
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text('User updated successfully!')),
                         );
                       } catch (e) {
+                        // Close loading indicator
+                        Navigator.pop(context);
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(content: Text('Error updating user: $e')),
                         );
@@ -545,7 +661,7 @@ class _UsersPageState extends State<UsersPage> {
     );
   }
 
-  Future<void> _deleteUser(String userId) async {
+  Future<void> _deleteUser(String userId, String? email) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -567,14 +683,44 @@ class _UsersPageState extends State<UsersPage> {
       ),
     );
 
-    if (confirmed == true) {
+    if (confirmed == true && email != null) {
       try {
+        // Show loading indicator
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => const Center(child: CircularProgressIndicator()),
+        );
+
+        // 1. Delete from Authentication
+        final user = await _auth.fetchSignInMethodsForEmail(email);
+        if (user.isNotEmpty) {
+          // User exists in Authentication
+          final authUser = await _auth.currentUser;
+          if (authUser != null && authUser.uid == userId) {
+            await authUser.delete();
+          }
+        }
+
+        // 2. Delete from Firestore
         await _firestore.collection('users').doc(userId).delete();
+
+        // Close loading indicator
         if (!mounted) return;
+        Navigator.pop(context);
+
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('User deleted successfully!')),
         );
+      } on FirebaseAuthException catch (e) {
+        // Close loading indicator
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error deleting user: ${e.message}')),
+        );
       } catch (e) {
+        // Close loading indicator
+        Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error deleting user: $e')),
         );
