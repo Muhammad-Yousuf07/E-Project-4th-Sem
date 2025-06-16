@@ -20,7 +20,7 @@ import '../pages/login_page.dart';
 import '../pages/products.dart';
 
 class PageRoutes{
-  static const String userHome = HomePage.routeName;
+  static final String userHome = HomePage.routeName;
   static const String userLogin = LoginPage.routeName;
   static const String userLaunch = LaunchingPage.routeName;
   static const String userSignup = SignupPage.routeName;
