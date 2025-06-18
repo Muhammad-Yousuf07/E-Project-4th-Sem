@@ -109,6 +109,7 @@ class _FeedbackFormPageState extends State<FeedbackFormPage> {
         ),
         body: Container(
           color: Color(0xFFeeeeee),
+          height: MediaQuery.of(context).size.height,
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(30),
             child: Center(

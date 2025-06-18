@@ -42,8 +42,59 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    // ✅ Yeh images list bana le — productData load hone ke baad
+  //CHAT GPT
+  // Widget build(BuildContext context) {
+  // final List<String> images =
+  // productData != null ? List<String>.from(productData!['images'] ?? []) : [];
+
+  //   return Scaffold(
+  //     backgroundColor: Color(0xFFeeeeee),
+  //     body: isLoading
+  //         ? Center(child: CircularProgressIndicator())
+  //         : productData == null
+  //         ? Center(child: Text('Product not found'))
+  //         : Column(
+  //       children: [
+  //         // back‐button + image (fixed or intrinsic height)
+  //         SafeArea(
+  //           child: IconButton(
+  //             icon: Icon(Icons.arrow_back),
+  //             onPressed: () => Navigator.pop(context),
+  //           ),
+  //         ),
+  //         SizedBox(
+  //           height: 250, // or MediaQuery.of(context).size.height*0.4
+  //           // child: images.isNotEmpty
+  //           //     ? Image.network(images.first, fit: BoxFit.cover)
+  //           //     : Placeholder(),
+  //         ),
+  //
+  //         // this Expanded will fill all the rest of the screen
+  //         Expanded(
+  //           child: Container(
+  //             width: double.infinity,
+  //             decoration: BoxDecoration(
+  //               color: Colors.white,
+  //               borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+  //             ),
+  //             padding: EdgeInsets.all(20),
+  //             child: SingleChildScrollView(
+  //               child: Column(
+  //                 crossAxisAlignment: CrossAxisAlignment.start,
+  //                 children: [
+  //                   // … your name, price, description, button …
+  //                 ],
+  //               ),
+  //             ),
+  //           ),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
+
+Widget build(BuildContext context) {
+
     final List<String> images =
     productData != null ? List<String>.from(productData!['images'] ?? []) : [];
 
@@ -92,7 +143,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
             // White Container
             Container(
               width: MediaQuery.of(context).size.width,
-              height: 270,
+              height: MediaQuery.of(context).size.height,
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.vertical(top: Radius.circular(30)),

@@ -182,7 +182,18 @@ class HomeHeader extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Expanded(child: SearchField()),
+          Expanded(
+            child: TextField(
+              decoration: InputDecoration(
+                hintText: 'Search Watches...',
+                prefixIcon: Icon(Icons.search),
+                contentPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 10),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ),
           const SizedBox(width: 16),
           IconBtnWithCounter(
             svgSrc: "assets/icons/Heart Icon.svg",
