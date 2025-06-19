@@ -315,7 +315,7 @@ class DiscountBanner extends StatelessWidget {
         gradient: LinearGradient(
           colors: [
             Color(0xFF0072FF), // Deep Sky Blue
-            Color(0xFF00C6FF), // Rich Cyanan
+            Color(0xFF00C6FF), // Rich Cyan
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
