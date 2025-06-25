@@ -1,14 +1,19 @@
 import 'dart:async';
-import 'package:flutter/material.dart';
+
+import 'package:flutter/material.dart' ;
+
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+
+
 import '../services/authentication.dart';
 import '../widgets/drawer.dart';
-import 'user_product_details.dart';
 import 'user_product.dart';
+import 'user_product_details.dart';
 import 'products.dart';
 import 'package:authentication/widgets/auth_guard.dart';
+
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -19,30 +24,26 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  String? uuid;
+  /*────────────  sale-timer state  ────────────*/
   late Duration _remainingTime;
   Timer? _timer;
+
+  /*────────────  bottom-bar state  ───────────*/
+  int _selectedIndex = 0;
 
   @override
   void initState() {
     super.initState();
 
+    // ── sale countdown until 23:59:59 tonight ──
     final now = DateTime.now();
     final endTime = DateTime(now.year, now.month, now.day, 23, 59, 59);
     _remainingTime = endTime.difference(now);
-
-    _timer = Timer.periodic(Duration(seconds: 1), (_) {
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       final now = DateTime.now();
       final endTime = DateTime(now.year, now.month, now.day, 23, 59, 59);
-      setState(() {
-        _remainingTime = endTime.difference(now);
-      });
+      setState(() => _remainingTime = endTime.difference(now));
     });
-
-    final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      uuid = user.uid;
-    }
   }
 
   @override
@@ -51,58 +52,89 @@ class _HomePageState extends State<HomePage> {
     super.dispose();
   }
 
-  Widget _buildStaticTimer() {
-    final hours = _remainingTime.inHours.toString().padLeft(2, '0');
-    final minutes = (_remainingTime.inMinutes % 60).toString().padLeft(2, '0');
-    final seconds = (_remainingTime.inSeconds % 60).toString().padLeft(2, '0');
+  /*────────────  bottom-bar tap handler ───────────*/
+  void _onNavTap(int index) {
+    if (index == 3) {
+      // Profile icon → jump to your edit-profile route
+      Navigator.pushReplacementNamed(context, "/EditUserPage");
+    }
+    else if (index == 1){
+      Navigator.pushReplacementNamed(context, "/ProductPage");
 
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _timeUnitBox(value: hours),
-        Text(":", style: TextStyle(color: Colors.white, fontSize: 20)),
-        _timeUnitBox(value: minutes),
-        Text(":", style: TextStyle(color: Colors.white, fontSize: 20)),
-        _timeUnitBox(value: seconds),
-      ],
-    );
+    }
+
+    else {
+      setState(() => _selectedIndex = index);
+    }
   }
 
-  Widget _timeUnitBox({required String value}) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      margin: EdgeInsets.symmetric(horizontal: 2),
+
+
+  /*────────────  page switcher ───────────*/
+  Widget _buildSelectedPage() {
+    switch (_selectedIndex) {
+      case 0:
+        return _buildHomeBody();
+      case 1:
+        return const ExploreTab();
+      case 2:
+        return const CartTab();
+      default:
+        return _buildHomeBody();
+    }
+  }
+
+  /*────────────  sale timer widget ───────────*/
+  Widget _buildStaticTimer() {
+    final h = _remainingTime.inHours.toString().padLeft(2, '0');
+    final m = (_remainingTime.inMinutes % 60).toString().padLeft(2, '0');
+    final s = (_remainingTime.inSeconds % 60).toString().padLeft(2, '0');
+
+    Widget box(String v) => Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      margin: const EdgeInsets.symmetric(horizontal: 2),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(4),
       ),
       child: Text(
-        value,
-        style: TextStyle(
+        v,
+        style: const TextStyle(
           fontSize: 20,
           fontWeight: FontWeight.bold,
           color: Color(0xFF0e99c9),
         ),
       ),
     );
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        box(h),
+        const Text(":", style: TextStyle(color: Colors.white, fontSize: 20)),
+        box(m),
+        const Text(":", style: TextStyle(color: Colors.white, fontSize: 20)),
+        box(s),
+      ],
+    );
   }
 
+  /*────────────  scaffold ───────────*/
   @override
   Widget build(BuildContext context) {
     return AuthGuard(
       child: Scaffold(
-        drawer: SideDrawer(),
+        drawer: const SideDrawer(),
         appBar: PreferredSize(
-          preferredSize: Size.fromHeight(60),
+          preferredSize: const Size.fromHeight(60),
           child: AppBar(
-            backgroundColor: Color(0xFF0e99c9),
-            iconTheme: IconThemeData(color: Colors.white, size: 26),
+            backgroundColor: const Color(0xFF0e99c9),
+            iconTheme: const IconThemeData(color: Colors.white, size: 26),
             centerTitle: true,
             title: Row(
               mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Flexible(
+                const Flexible(
                   child: FittedBox(
                     fit: BoxFit.scaleDown,
                     child: Text(
@@ -116,7 +148,7 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                 ),
-                SizedBox(width: 5),
+                const SizedBox(width: 5),
                 _buildStaticTimer(),
               ],
             ),
@@ -124,54 +156,97 @@ class _HomePageState extends State<HomePage> {
               IconButton(
                 onPressed: () async {
                   await AuthenticationHelper().signOut();
-                  Navigator.pushReplacementNamed(context, "/LoginPage");
+                  if (context.mounted) {
+                    Navigator.pushReplacementNamed(context, "/LoginPage");
+                  }
                 },
-                icon: Icon(Icons.logout_outlined),
+                icon: const Icon(Icons.logout_outlined),
               ),
             ],
           ),
         ),
-        body: SafeArea(
-          child: SingleChildScrollView(
-            padding: EdgeInsets.symmetric(vertical: 16),
-            child: Column(
-              children: [
-                HomeHeader(),
-                DiscountBanner(),
-                Categories(),
-                SizedBox(height: 20),
-                PopularProducts(),
-                SizedBox(height: 20),
-              ],
+
+        // body changes when user taps the bar (except Profile)
+        body: _buildSelectedPage(),
+
+        /*────────────  bottom navigation bar  ───────────*/
+        bottomNavigationBar: BottomNavigationBar(
+          currentIndex: _selectedIndex,
+          onTap: _onNavTap,
+          type: BottomNavigationBarType.fixed,
+          selectedItemColor: const Color(0xFF0e99c9),
+          unselectedItemColor: Colors.grey,
+          showUnselectedLabels: false,
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home_outlined),
+              activeIcon: Icon(Icons.home),
+              label: 'Home',
             ),
-          ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.explore_outlined),
+              activeIcon: Icon(Icons.explore),
+              label: 'Explore',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.shopping_cart_outlined),
+              activeIcon: Icon(Icons.shopping_cart),
+              label: 'Cart',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.person_outline),
+              activeIcon: Icon(Icons.person),
+              label: 'Profile',
+            ),
+          ],
         ),
       ),
     );
   }
+
+  /*────────────  home tab content ───────────*/
+  Widget _buildHomeBody() => SafeArea(
+    child: SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      child: Column(
+        children: const [
+          HomeHeader(),
+          DiscountBanner(),
+          Categories(),
+          SizedBox(height: 20),
+          LatestProducts(),
+          TestimonialSection(),
+          SizedBox(height: 20),
+        ],
+      ),
+    ),
+  );
 }
 
-class AuthGuard extends StatelessWidget {
-  final Widget child;
-
-  const AuthGuard({super.key, required this.child});
-
+/*━━━━━━━━━━  placeholder tabs  ━━━━━━━━━━*/
+class ExploreTab extends StatelessWidget {
+  const ExploreTab({Key? key}) : super(key: key);
   @override
-  Widget build(BuildContext context) {
-    final user = FirebaseAuth.instance.currentUser;
-
-    if (user == null) {
-      return const Scaffold(
-        body: Center(
-          child: Text("Please login to access the app."),
-        ),
-      );
-    } else {
-      return child;
-    }
-  }
+  Widget build(BuildContext context) =>
+      const Center(child: Text('Explore page (coming soon)'));
 }
 
+class CartTab extends StatelessWidget {
+  const CartTab({Key? key}) : super(key: key);
+  @override
+  Widget build(BuildContext context) =>
+      const Center(child: Text('Cart page (coming soon)'));
+}
+
+/*─────────────────────────────────
+  Everything below is copied from
+  your original file unchanged. If
+  you keep these widgets in their
+  own files, you can delete them
+  here and import instead.
+─────────────────────────────────*/
+
+// ---------------- HomeHeader ----------------
 class HomeHeader extends StatelessWidget {
   const HomeHeader({Key? key}) : super(key: key);
 
@@ -186,8 +261,9 @@ class HomeHeader extends StatelessWidget {
             child: TextField(
               decoration: InputDecoration(
                 hintText: 'Search Watches...',
-                prefixIcon: Icon(Icons.search),
-                contentPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 10),
+                prefixIcon: const Icon(Icons.search),
+                contentPadding:
+                const EdgeInsets.symmetric(vertical: 0, horizontal: 10),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -203,15 +279,15 @@ class HomeHeader extends StatelessWidget {
           IconBtnWithCounter(
             svgSrc: "assets/icons/Cart Icon.svg",
             numOfitem: 0,
-
             press: () {},
           ),
-
         ],
       ),
     );
   }
 }
+
+
 
 class SearchField extends StatelessWidget {
   const SearchField({Key? key}) : super(key: key);
@@ -403,14 +479,14 @@ class CategoryCard extends StatelessWidget {
   }
 }
 
-class PopularProducts extends StatefulWidget {
-  const PopularProducts({super.key});
+class LatestProducts extends StatefulWidget {
+  const LatestProducts({super.key});
 
   @override
-  State<PopularProducts> createState() => _PopularProductsState();
+  State<LatestProducts> createState() => _LatestProductsState();
 }
 
-class _PopularProductsState extends State<PopularProducts> {
+class _LatestProductsState extends State<LatestProducts> {
   late Future<List<QueryDocumentSnapshot>> _futureProducts;
 
   @override
@@ -434,7 +510,7 @@ class _PopularProductsState extends State<PopularProducts> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text(
-                "Popular Products",
+                "Latest Products",
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
@@ -530,6 +606,203 @@ class _PopularProductsState extends State<PopularProducts> {
           },
         ),
       ],
+    );
+
+
+
+  }
+
+}
+
+class TestimonialSection extends StatefulWidget {
+  const TestimonialSection({super.key});
+
+  @override
+  State<TestimonialSection> createState() => _TestimonialSectionState();
+}
+
+class _TestimonialSectionState extends State<TestimonialSection> {
+  final PageController _pageController = PageController(viewportFraction: 0.85);
+  int _activeIndex = 0;
+  Timer? _autoTimer;
+
+  // ✅ 1) add a `gender` field
+  final List<Map<String, String>> _testimonials = [
+    {
+      'name': 'Ayesha Khan',
+      'role': 'UI/UX Designer',
+      'gender': 'female',
+      'review':
+      'This watch exceeded my expectations! Looks way better than the pictures. Highly recommend WatchHub 💙',
+    },
+    {
+      'name': 'Hamza Iqbal',
+      'role': 'Photographer',
+      'gender': 'male',
+      'review':
+      'Fast delivery, sleek design, great support. Easily the best online buying experience.',
+    },
+    {
+      'name': 'Mehwish Saleem',
+      'role': 'Software Engineer',
+      'gender': 'female',
+      'review':
+      'Premium quality and always on time. WatchHub is now my go-to place for watches!',
+    },
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _autoTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+      if (_pageController.hasClients) {
+        final next = (_activeIndex + 1) % _testimonials.length;
+        _pageController.animateToPage(
+          next,
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.easeOut,
+        );
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _autoTimer?.cancel();
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              'What our customers say',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ),
+    const SizedBox(height: 4),
+        SizedBox(
+          height: 240,
+          child: PageView.builder(
+            controller: _pageController,
+            itemCount: _testimonials.length,
+            onPageChanged: (i) => setState(() => _activeIndex = i),
+            itemBuilder: (_, i) => AnimatedPadding(
+              duration: const Duration(milliseconds: 300),
+              padding: EdgeInsets.symmetric(
+                horizontal: 8,
+                vertical: _activeIndex == i ? 0 : 12,
+              ),
+              child: _TestimonialCard(_testimonials[i]),
+            ),
+          ),
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: List.generate(
+            _testimonials.length,
+                (i) => AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 16),
+              width: _activeIndex == i ? 16 : 8,
+              height: 8,
+              decoration: BoxDecoration(
+                color: _activeIndex == i
+                    ? const Color(0xff0e99c9)
+                    : Colors.grey.shade400,
+                borderRadius: BorderRadius.circular(4),
+
+              ),
+
+            ),
+          ),
+        ),
+      ],
+
+    );
+
+  }
+
+}
+/* ───────────── single testimonial card ───────────── */
+class _TestimonialCard extends StatelessWidget {
+  const _TestimonialCard(this.data);
+  final Map<String, String> data;
+
+  @override
+  Widget build(BuildContext context) {
+
+    IconData faceIcon;
+    switch (data['gender']) {
+      case 'female':
+        faceIcon = Icons.face_4_rounded; // female-looking face
+        break;
+      case 'male':
+        faceIcon = Icons.face_6_rounded; // male-looking face
+        break;
+      default:
+        faceIcon = Icons.face; // neutral fallback
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            const Color(0xff0e99c9),
+            const Color(0xff0e99c9).withOpacity(0.9),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            blurRadius: 6,
+            offset: const Offset(0, 3),
+            color: Colors.black.withOpacity(0.15),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          /* avatar icon */
+          CircleAvatar(
+            radius: 32,
+            backgroundColor: Colors.white,
+            child: Icon(faceIcon, size: 36, color: const Color(0xff0e99c9)),
+          ),
+          const SizedBox(height: 12),
+
+          /* review text */
+          Text(
+            data['review']!,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 14, color: Colors.white),
+          ),
+          const SizedBox(height: 14),
+
+          /* name & role */
+          Text(
+            data['name']!,
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+              color: Colors.white,
+            ),
+          ),
+          Text(
+            data['role']!,
+            style: const TextStyle(color: Colors.white70),
+          ),
+        ],
+      ),
     );
   }
 }
